@@ -1,0 +1,213 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ post.title }} - Daily Scribbles{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Main Content -->
+    <div class="col-lg-8">
+        <!-- Post Content -->
+        <article class="card mb-4">
+            {% if post.featured_image %}
+            <img src="{{ post.featured_image.url }}" class="card-img-top" alt="{{ post.title }}" style="max-height: 400px; object-fit: cover;">
+            {% endif %}
+            
+            <div class="card-body">
+                <h1 class="card-title">{{ post.title }}</h1>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <small class="text-muted">
+                            By <strong>{{ post.author.username }}</strong> • {{ post.created_at|date:"F d, Y" }}
+                            {% if post.category %}
+                                • <a href="{% url 'blog:category_posts' post.category.slug %}" class="text-decoration-none">{{ post.category.name }}</a>
+                            {% endif %}
+                        </small>
+                    </div>
+                    <div>
+                        <small class="text-muted">
+                            <i class="fas fa-eye"></i> {{ post.view_count }}
+                            <i class="fas fa-heart ms-2"></i> {{ post.like_count }}
+                        </small>
+                    </div>
+                </div>
+
+                <div class="post-content">
+                    {{ post.content|linebreaks }}
+                </div>
+
+                <!-- Like Button -->
+                {% if user.is_authenticated %}
+                <div class="mt-4">
+                    <form method="post" action="{% url 'blog:toggle_like' post.slug %}" class="d-inline" id="like-form">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger btn-sm" id="like-btn">
+                            <i class="fas fa-heart{% if not is_liked %}-o{% endif %}"></i>
+                            <span id="like-text">{% if is_liked %}Unlike{% else %}Like{% endif %}</span>
+                            (<span id="like-count">{{ post.like_count }}</span>)
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </article>
+
+        <!-- Comments Section -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Comments ({{ comments.count }})</h5>
+            </div>
+            <div class="card-body">
+                <!-- Add Comment Form -->
+                {% if user.is_authenticated %}
+                <form method="post" action="{% url 'blog:add_comment' post.slug %}" class="mb-4">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Add a comment:</label>
+                        <textarea class="form-control" id="content" name="content" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Post Comment</button>
+                </form>
+                {% else %}
+                <div class="alert alert-info">
+                    <a href="{% url 'userapp:login' %}?next={{ request.path }}" class="text-decoration-none">Login</a> to post a comment.
+                </div>
+                {% endif %}
+
+                <!-- Comments List -->
+                {% for comment in comments %}
+                <div class="comment mb-3 p-3 border rounded">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <strong>{{ comment.author.username }}</strong>
+                        <small class="text-muted">{{ comment.created_at|date:"M d, Y H:i" }}</small>
+                    </div>
+                    <p class="mb-2">{{ comment.content|linebreaks }}</p>
+                    
+                    <!-- Replies -->
+                    {% for reply in comment.replies.all %}
+                    <div class="reply ms-4 mt-2 p-2 bg-light rounded">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <strong>{{ reply.author.username }}</strong>
+                            <small class="text-muted">{{ reply.created_at|date:"M d, Y H:i" }}</small>
+                        </div>
+                        <p class="mb-0 small">{{ reply.content|linebreaks }}</p>
+                    </div>
+                    {% endfor %}
+
+                    <!-- Reply Form -->
+                    {% if user.is_authenticated %}
+                    <button class="btn btn-sm btn-outline-secondary mt-2 reply-toggle-btn" data-comment-id="{{ comment.id }}">
+                        Reply
+                    </button>
+                    <form method="post" action="{% url 'blog:add_comment' post.slug %}" class="mt-2 reply-form" id="reply-form-{{ comment.id }}" style="display: none;">
+                        {% csrf_token %}
+                        <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                        <div class="mb-2">
+                            <textarea class="form-control form-control-sm" name="content" rows="2" placeholder="Write a reply..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary">Reply</button>
+                        <button type="button" class="btn btn-sm btn-secondary reply-cancel-btn" data-comment-id="{{ comment.id }}">Cancel</button>
+                    </form>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <p class="text-muted">No comments yet. Be the first to comment!</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Author Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">About the Author</h5>
+            </div>
+            <div class="card-body">
+                <h6>{{ post.author.get_full_name|default:post.author.username }}</h6>
+                <p class="card-text">Member since {{ post.author.date_joined|date:"F Y" }}</p>
+                <small class="text-muted">
+                    Posts: {{ post.author.blog_posts.count }} • 
+                    Comments: {{ post.author.comments.count }}
+                </small>
+            </div>
+        </div>
+
+        <!-- Related Posts -->
+        {% if related_posts %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Related Posts</h5>
+            </div>
+            <div class="card-body">
+                {% for related_post in related_posts %}
+                <div class="mb-3">
+                    <h6 class="mb-1">
+                        <a href="{% url 'blog:post_detail' related_post.slug %}" class="text-decoration-none">
+                            {{ related_post.title|truncatechars:50 }}
+                        </a>
+                    </h6>
+                    <small class="text-muted">
+                        {{ related_post.created_at|date:"M d, Y" }} • 
+                        <i class="fas fa-eye"></i> {{ related_post.view_count }}
+                    </small>
+                </div>
+                {% if not forloop.last %}<hr>{% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleReplyForm(commentId) {
+    const form = document.getElementById('reply-form-' + commentId);
+    if (form.style.display === 'none' || form.style.display === '') {
+        form.style.display = 'block';
+    } else {
+        form.style.display = 'none';
+    }
+}
+
+$(document).ready(function() {
+    // Reply form toggle functionality
+    $(document).on('click', '.reply-toggle-btn, .reply-cancel-btn', function(e) {
+        e.preventDefault();
+        const commentId = $(this).data('comment-id');
+        toggleReplyForm(commentId);
+    });
+
+    // AJAX Like functionality
+    $('#like-form').on('submit', function(e) {
+        e.preventDefault();
+        
+        $.ajax({
+            url: $(this).attr('action'),
+            type: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+            },
+            success: function(response) {
+                $('#like-count').text(response.like_count);
+                if (response.liked) {
+                    $('#like-btn i').removeClass('fa-heart-o').addClass('fa-heart');
+                    $('#like-text').text('Unlike');
+                } else {
+                    $('#like-btn i').removeClass('fa-heart').addClass('fa-heart-o');
+                    $('#like-text').text('Like');
+                }
+            },
+            error: function() {
+                alert('Error processing your request. Please try again.');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
