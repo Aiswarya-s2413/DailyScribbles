@@ -42,7 +42,7 @@
                             </a>
                             <ul class="dropdown-menu">
                                 {% if user.is_staff %}
-                                    <li><a class="dropdown-item" href="/admin/">Admin Panel</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'adminpanel:dashboard' %}">Admin Panel</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                 {% endif %}
                                 <li><a class="dropdown-item" href="{% url 'userapp:logout' %}">Logout</a></li>

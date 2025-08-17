@@ -1,0 +1,173 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Stats Cards -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Total Users</div>
+                        <div class="h5 mb-0 font-weight-bold">{{ total_users }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Active Users</div>
+                        <div class="h5 mb-0 font-weight-bold">{{ active_users }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-check fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Staff Users</div>
+                        <div class="h5 mb-0 font-weight-bold">{{ staff_users }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-shield fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Inactive Users</div>
+                        <div class="h5 mb-0 font-weight-bold">{{ total_users|add:"-"|add:active_users }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-times fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'adminpanel:user_management' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-users me-2"></i>Manage Users
+                    </a>
+                    <a href="{% url 'adminpanel:create_user' %}" class="btn btn-outline-success">
+                        <i class="fas fa-user-plus me-2"></i>Create New User
+                    </a>
+                    <a href="{% url 'admin:index' %}" class="btn btn-outline-info" target="_blank">
+                        <i class="fas fa-cog me-2"></i>Django Admin
+                    </a>
+                    <a href="{% url 'blog:post_list' %}" class="btn btn-outline-secondary" target="_blank">
+                        <i class="fas fa-external-link-alt me-2"></i>View Website
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>System Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <strong>Django Version:</strong>
+                    </div>
+                    <div class="col-sm-6">
+                        5.2.5
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <strong>Database:</strong>
+                    </div>
+                    <div class="col-sm-6">
+                        SQLite
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <strong>Debug Mode:</strong>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="badge bg-warning">Enabled</span>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <strong>Admin User:</strong>
+                    </div>
+                    <div class="col-sm-6">
+                        {{ request.user.username }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-clock me-2"></i>Welcome to Admin Panel
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle me-2"></i>Getting Started</h6>
+                    <p class="mb-2">Welcome to the Daily Scribbles Admin Panel! Here you can:</p>
+                    <ul class="mb-0">
+                        <li>Manage user accounts (view, edit, create, delete)</li>
+                        <li>Monitor user activity and statistics</li>
+                        <li>Access the Django admin for blog management</li>
+                        <li>View and manage the website content</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

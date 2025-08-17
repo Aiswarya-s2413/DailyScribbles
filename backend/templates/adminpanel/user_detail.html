@@ -1,0 +1,211 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block page_title %}User Details - {{ user_obj.username }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user-edit me-2"></i>Edit User: {{ user_obj.username }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="username" class="form-label">Username *</label>
+                            <input type="text" class="form-control" id="username" name="username" 
+                                   value="{{ user_obj.username }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="{{ user_obj.email }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="first_name" class="form-label">First Name</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" 
+                                   value="{{ user_obj.first_name }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" 
+                                   value="{{ user_obj.last_name }}">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="new_password" class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password" 
+                                   placeholder="Leave blank to keep current password">
+                            <div class="form-text">Leave blank if you don't want to change the password</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">User Status</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" 
+                                       {% if user_obj.is_active %}checked{% endif %}>
+                                <label class="form-check-label" for="is_active">
+                                    Active User
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_staff" name="is_staff" 
+                                       {% if user_obj.is_staff %}checked{% endif %}>
+                                <label class="form-check-label" for="is_staff">
+                                    Staff User (Can access admin)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'adminpanel:user_management' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to User List
+                        </a>
+                        <div>
+                            {% if user_obj != request.user and not user_obj.is_superuser %}
+                                <button type="button" class="btn btn-danger me-2" 
+                                        onclick="confirmDelete({{ user_obj.id }}, '{{ user_obj.username }}')">
+                                    <i class="fas fa-trash me-2"></i>Delete User
+                                </button>
+                            {% endif %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- User Info Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>User Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>User ID:</strong></div>
+                    <div class="col-sm-7">{{ user_obj.id }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Username:</strong></div>
+                    <div class="col-sm-7">{{ user_obj.username }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Email:</strong></div>
+                    <div class="col-sm-7">{{ user_obj.email|default:"-" }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Full Name:</strong></div>
+                    <div class="col-sm-7">{{ user_obj.get_full_name|default:"-" }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Status:</strong></div>
+                    <div class="col-sm-7">
+                        {% if user_obj.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Role:</strong></div>
+                    <div class="col-sm-7">
+                        {% if user_obj.is_superuser %}
+                            <span class="badge bg-danger">Superuser</span>
+                        {% elif user_obj.is_staff %}
+                            <span class="badge bg-primary">Staff</span>
+                        {% else %}
+                            <span class="badge bg-light text-dark">User</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Joined:</strong></div>
+                    <div class="col-sm-7">{{ user_obj.date_joined|date:"M d, Y H:i" }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Last Login:</strong></div>
+                    <div class="col-sm-7">
+                        {% if user_obj.last_login %}
+                            {{ user_obj.last_login|date:"M d, Y H:i" }}
+                        {% else %}
+                            Never
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Stats Card -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Activity Stats
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-sm-7"><strong>Blog Posts:</strong></div>
+                    <div class="col-sm-5">
+                        <span class="badge bg-info">{{ user_posts_count }}</span>
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-7"><strong>Comments:</strong></div>
+                    <div class="col-sm-5">
+                        <span class="badge bg-success">{{ user_comments_count }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete user <strong id="deleteUsername"></strong>?</p>
+                <p class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i>This action cannot be undone and will also delete all associated data.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete User</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(userId, username) {
+    document.getElementById('deleteUsername').textContent = username;
+    document.getElementById('deleteForm').action = '/adminpanel/users/' + userId + '/delete/';
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+</script>
+{% endblock %}
