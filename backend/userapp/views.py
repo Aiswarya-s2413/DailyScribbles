@@ -87,27 +87,7 @@ def logout_view(request):
     return redirect('blog:post_list')
 
 
-@login_required
-def profile_view(request):
-    """Frontend profile view"""
-    if request.method == 'POST':
-        user = request.user
-        user.first_name = request.POST.get('first_name', user.first_name)
-        user.last_name = request.POST.get('last_name', user.last_name)
-        user.email = request.POST.get('email', user.email)
-        user.save()
-        messages.success(request, 'Profile updated successfully!')
-    
-    # Get user's posts and comments
-    user_posts = request.user.blog_posts.all()[:5]
-    user_comments = request.user.comments.all()[:5]
-    
-    context = {
-        'user': request.user,
-        'user_posts': user_posts,
-        'user_comments': user_comments,
-    }
-    return render(request, 'userapp/profile.html', context)
+
 
 
 # Simple JSON API Endpoints
@@ -206,22 +186,3 @@ def api_logout(request):
     else:
         return JsonResponse({'error': 'User not authenticated'}, status=401)
 
-
-def api_user_profile(request):
-    """API endpoint for user profile"""
-    if not request.user.is_authenticated:
-        return JsonResponse({'error': 'Authentication required'}, status=401)
-    
-    user = request.user
-    return JsonResponse({
-        'user': {
-            'id': user.id,
-            'username': user.username,
-            'email': user.email,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'date_joined': user.date_joined.isoformat(),
-            'post_count': user.blog_posts.filter(status='published').count(),
-            'comment_count': user.comments.filter(status='approved').count(),
-        }
-    })
