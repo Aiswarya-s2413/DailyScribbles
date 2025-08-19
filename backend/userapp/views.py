@@ -21,6 +21,15 @@ def login_page(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         
+        # Check if user exists and is blocked
+        try:
+            user_obj = User.objects.get(username=username)
+            if not user_obj.is_active:
+                messages.error(request, 'Your account has been blocked. Please contact the administrator.')
+                return render(request, 'userapp/login.html')
+        except User.DoesNotExist:
+            pass
+        
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
@@ -102,6 +111,14 @@ def api_login(request):
         
         if not username or not password:
             return JsonResponse({'error': 'Username and password are required'}, status=400)
+        
+        # Check if user exists and is blocked
+        try:
+            user_obj = User.objects.get(username=username)
+            if not user_obj.is_active:
+                return JsonResponse({'error': 'Your account has been blocked. Please contact the administrator.'}, status=403)
+        except User.DoesNotExist:
+            pass
         
         user = authenticate(username=username, password=password)
         if user:

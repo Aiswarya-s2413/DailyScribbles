@@ -1,9 +1,16 @@
 /* Custom styles for Daily Scribbles CMS */
 
+/* Force light theme everywhere */
+* {
+    color-scheme: light !important;
+}
+
 /* General Styles */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
+    background-color: #f8fafc !important;
+    color: #374151 !important;
 }
 
 /* Navigation */
@@ -183,21 +190,7 @@ footer {
     to { transform: rotate(360deg); }
 }
 
-/* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-    .card {
-        background-color: #2d3748;
-        color: #e2e8f0;
-    }
-    
-    .bg-light {
-        background-color: #4a5568 !important;
-    }
-    
-    .text-muted {
-        color: #a0aec0 !important;
-    }
-}
+
 
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
@@ -215,6 +208,39 @@ footer {
     
     .btn {
         font-size: 0.875rem;
+    }
+}
+
+/* Force light theme overrides */
+.card, .modal-content, .dropdown-menu, .offcanvas {
+    background-color: white !important;
+    color: #374151 !important;
+}
+
+.bg-dark, .navbar-dark, .text-dark, .btn-dark, .alert-dark {
+    background-color: white !important;
+    color: #374151 !important;
+    border-color: #d1d5db !important;
+}
+
+/* Override system dark mode preference */
+@media (prefers-color-scheme: dark) {
+    * {
+        color-scheme: light !important;
+    }
+    
+    body, html {
+        background-color: #f8fafc !important;
+        color: #374151 !important;
+    }
+    
+    .card, .modal-content, .dropdown-menu {
+        background-color: white !important;
+        color: #374151 !important;
+    }
+    
+    .navbar {
+        background-color: white !important;
     }
 }
 

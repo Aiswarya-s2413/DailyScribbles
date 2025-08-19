@@ -1,0 +1,258 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block title %}Edit {{ blog.title }} - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Edit Blog Post</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'adminpanel:blog_detail' blog.id %}" class="btn btn-outline-info">
+                <i class="fas fa-eye me-2"></i>View Details
+            </a>
+            <a href="{{ blog.get_absolute_url }}" class="btn btn-outline-secondary" target="_blank">
+                <i class="fas fa-external-link-alt me-2"></i>View on Site
+            </a>
+        </div>
+        <a href="{% url 'adminpanel:blog_management' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Posts
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-edit me-2"></i>Edit Post Content
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" id="blog-form">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title *</label>
+                        <input type="text" class="form-control" id="title" name="title" 
+                               value="{{ blog.title }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="excerpt" class="form-label">Excerpt</label>
+                        <textarea class="form-control" id="excerpt" name="excerpt" rows="3" 
+                                  placeholder="Brief description of the post">{{ blog.excerpt }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Content *</label>
+                        <textarea class="form-control" id="content" name="content" rows="15" required>{{ blog.content }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="featured_image" class="form-label">Featured Image</label>
+                        {% if blog.featured_image %}
+                            <div class="mb-2">
+                                <img src="{{ blog.featured_image.url }}" alt="Current featured image" 
+                                     class="img-thumbnail" style="max-height: 150px;">
+                                <div class="form-text">Current featured image</div>
+                            </div>
+                        {% endif %}
+                        <input type="file" class="form-control" id="featured_image" name="featured_image" 
+                               accept="image/*">
+                        <div class="form-text">Upload a new featured image (leave empty to keep current)</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="attachments" class="form-label">Add New Attachments</label>
+                        <input type="file" class="form-control" id="attachments" name="attachments" multiple>
+                        <div class="form-text">Upload additional files or images</div>
+                    </div>
+
+                    <!-- Existing Attachments -->
+                    {% if attachments %}
+                    <div class="mb-3">
+                        <label class="form-label">Current Attachments</label>
+                        <div class="row">
+                            {% for attachment in attachments %}
+                            <div class="col-md-6 mb-2">
+                                <div class="card">
+                                    <div class="card-body py-2">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-file text-muted me-2"></i>
+                                                <small>{{ attachment.title|default:attachment.file.name|truncatechars:30 }}</small>
+                                            </div>
+                                            <div>
+                                                <a href="{{ attachment.file.url }}" class="btn btn-sm btn-outline-primary me-1" 
+                                                   target="_blank" title="Download">
+                                                    <i class="fas fa-download"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        onclick="deleteAttachment('{{ attachment.id }}')" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'adminpanel:blog_detail' blog.id %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <div>
+                            <button type="submit" name="status" value="draft" class="btn btn-outline-primary me-2">
+                                <i class="fas fa-save me-2"></i>Save as Draft
+                            </button>
+                            <button type="submit" name="status" value="published" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>
+                                {% if blog.status == 'published' %}Update{% else %}Publish{% endif %}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Post Settings -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-cog me-2"></i>Post Settings
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="category" class="form-label">Category</label>
+                    <select class="form-select" id="category" name="category" form="blog-form">
+                        <option value="">Select Category</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}" 
+                                    {% if blog.category and blog.category.id == category.id %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured" 
+                           form="blog-form" {% if blog.is_featured %}checked{% endif %}>
+                    <label class="form-check-label" for="is_featured">
+                        Featured Post
+                    </label>
+                    <div class="form-text">Featured posts appear prominently on the site</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Publishing Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Publishing Info
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Author:</strong></div>
+                    <div class="col-sm-7">{{ blog.author.username }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Status:</strong></div>
+                    <div class="col-sm-7">
+                        {% if blog.status == 'published' %}
+                            <span class="badge bg-success">Published</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Draft</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Created:</strong></div>
+                    <div class="col-sm-7">{{ blog.created_at|date:"M d, Y H:i" }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Updated:</strong></div>
+                    <div class="col-sm-7">{{ blog.updated_at|date:"M d, Y H:i" }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Views:</strong></div>
+                    <div class="col-sm-7">{{ blog.view_count }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-5"><strong>Likes:</strong></div>
+                    <div class="col-sm-7">{{ blog.like_count }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEO -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-search me-2"></i>SEO Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-sm-4"><strong>Slug:</strong></div>
+                    <div class="col-sm-8">
+                        <code>{{ blog.slug }}</code>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-4"><strong>URL:</strong></div>
+                    <div class="col-sm-8">
+                        <small class="text-muted">{{ request.get_host }}{{ blog.get_absolute_url }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-resize textarea
+document.addEventListener('DOMContentLoaded', function() {
+    const textarea = document.getElementById('content');
+    textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+    });
+    
+    // Initial resize
+    textarea.style.height = textarea.scrollHeight + 'px';
+});
+
+function deleteAttachment(attachmentId) {
+    if (confirm('Are you sure you want to delete this attachment?')) {
+        // Create a form to delete the attachment
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/adminpanel/blogs/{{ blog.id }}/attachments/delete/' + attachmentId + '/';
+        
+        // Add CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+{% endblock %}

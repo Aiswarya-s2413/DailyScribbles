@@ -3,163 +3,519 @@
 
 {% block title %}{{ post.title }} - Daily Scribbles{% endblock %}
 
+{% block extra_css %}
+<style>
+/* Post Detail Specific Styles */
+.post-header {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.post-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #1a202c;
+    margin-bottom: 1rem;
+}
+
+.post-meta {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.post-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.post-meta-item i {
+    color: var(--primary-color);
+}
+
+.post-featured-image {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.post-content {
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: #374151;
+    max-width: none;
+}
+
+.post-content p {
+    margin-bottom: 1.5rem;
+}
+
+.post-content h1, .post-content h2, .post-content h3, 
+.post-content h4, .post-content h5, .post-content h6 {
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: #1a202c;
+}
+
+.post-content h1 { font-size: 2rem; }
+.post-content h2 { font-size: 1.75rem; }
+.post-content h3 { font-size: 1.5rem; }
+.post-content h4 { font-size: 1.25rem; }
+
+.post-content blockquote {
+    border-left: 4px solid var(--primary-color);
+    background: #f8fafc;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    border-radius: 8px;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: #4a5568;
+}
+
+.post-content code {
+    background: #f1f5f9;
+    color: #e53e3e;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.post-content pre {
+    background: #1a202c;
+    color: #e2e8f0;
+    padding: 1.5rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.post-content pre code {
+    background: none;
+    color: inherit;
+    padding: 0;
+}
+
+.post-content ul, .post-content ol {
+    margin-bottom: 1.5rem;
+    padding-left: 2rem;
+}
+
+.post-content li {
+    margin-bottom: 0.5rem;
+}
+
+.post-actions {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.like-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.like-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.share-section {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.share-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.share-btn:hover {
+    transform: translateY(-2px);
+}
+
+.comments-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.comments-header {
+    background: #f8fafc;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.comments-body {
+    padding: 1.5rem;
+}
+
+.comment-form {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.comment-item {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+}
+
+.comment-item:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.comment-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.comment-author {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.comment-date {
+    color: #64748b;
+    font-size: 0.875rem;
+}
+
+.comment-content {
+    color: #374151;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.reply-item {
+    background: #f8fafc;
+    border-left: 3px solid var(--primary-color);
+    margin-left: 2rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 0 8px 8px 0;
+}
+
+.sidebar-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.sidebar-card-header {
+    background: #f8fafc;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+    font-weight: 600;
+    color: #1a202c;
+}
+
+.sidebar-card-body {
+    padding: 1.5rem;
+}
+
+.author-stats {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.author-stat {
+    text-align: center;
+}
+
+.author-stat-number {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.author-stat-label {
+    font-size: 0.875rem;
+    color: #64748b;
+}
+
+.related-post {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid #f1f5f9;
+    transition: all 0.2s ease;
+}
+
+.related-post:last-child {
+    border-bottom: none;
+}
+
+.related-post:hover {
+    background: #f8fafc;
+    margin: 0 -1rem;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.related-post-image {
+    width: 80px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.related-post-content h6 {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+}
+
+.related-post-meta {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .post-title {
+        font-size: 2rem;
+    }
+    
+    .post-header {
+        padding: 1.5rem;
+    }
+    
+    .post-content {
+        font-size: 1rem;
+    }
+    
+    .post-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .reply-item {
+        margin-left: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <!-- Main Content -->
     <div class="col-lg-8">
-        <!-- Post Content -->
-        <article class="card mb-4">
-            {% if post.featured_image %}
-            <img src="{{ post.featured_image.url }}" class="card-img-top" alt="{{ post.title }}" style="max-height: 400px; object-fit: cover;">
-            {% endif %}
+        <!-- Post Header -->
+        <div class="post-header">
+            <div class="post-meta">
+                {% if post.category %}
+                    <span class="badge bg-primary">{{ post.category.name }}</span>
+                {% endif %}
+                <div class="post-meta-item">
+                    <i class="fas fa-calendar"></i>
+                    <span>{{ post.created_at|date:"F d, Y" }}</span>
+                </div>
+                <div class="post-meta-item">
+                    <i class="fas fa-user"></i>
+                    <span>{{ post.author.get_full_name|default:post.author.username }}</span>
+                </div>
+                <div class="post-meta-item">
+                    <i class="fas fa-clock"></i>
+                    <span>{% widthratio post.content|wordcount 200 1 %} min read</span>
+                 </div>
+             </div>
+             
+
+                </div>
+            </div>
             
-            <div class="card-body">
-                <h1 class="card-title">{{ post.title }}</h1>
-                
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                        <small class="text-muted">
-                            By <strong>{{ post.author.username }}</strong> • {{ post.created_at|date:"F d, Y" }}
-                            {% if post.category %}
-                                • <a href="{% url 'blog:category_posts' post.category.slug %}" class="text-decoration-none">{{ post.category.name }}</a>
-                            {% endif %}
-                        </small>
-                    </div>
-                    <div>
-                        <small class="text-muted">
-                            <i class="fas fa-eye"></i> {{ post.view_count }}
-                            <i class="fas fa-heart ms-2"></i> {{ post.like_count }}
-                        </small>
-                    </div>
+            <h1 class="post-title">{{ post.title }}</h1>
+            
+            <div class="post-meta">
+                <div class="post-meta-item">
+                    <i class="fas fa-eye"></i>
+                    <span>{{ post.view_count }} views</span>
                 </div>
-
-                <div class="post-content">
-                    {{ post.content|linebreaks }}
+                <div class="post-meta-item">
+                    <i class="fas fa-heart"></i>
+                    <span>{{ post.like_count }} likes</span>
                 </div>
+                <div class="post-meta-item">
+                    <i class="fas fa-comments"></i>
+                    <span>{{ comments.count }} comments</span>
+                </div>
+            </div>
+        </div>
 
-                <!-- Like Button -->
+        <!-- Featured Image -->
+        {% if post.featured_image %}
+        <img src="{{ post.featured_image.url }}" class="post-featured-image" alt="{{ post.title }}">
+        {% endif %}
+
+        <!-- Post Content -->
+        <div class="post-content">
+            {{ post.content|linebreaks }}
+        </div>
+
+        <!-- Post Actions -->
+        <div class="post-actions">
+            <div class="like-section">
                 {% if user.is_authenticated %}
-                <div class="mt-4">
                     <form method="post" action="{% url 'blog:toggle_like' post.slug %}" class="d-inline" id="like-form">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-outline-danger btn-sm" id="like-btn">
-                            <i class="fas fa-heart{% if not is_liked %}-o{% endif %}"></i>
-                            <span id="like-text">{% if is_liked %}Unlike{% else %}Like{% endif %}</span>
+                        <button type="submit" class="btn like-btn {% if is_liked %}btn-danger{% else %}btn-outline-danger{% endif %}" id="like-btn">
+                            <i class="fas fa-heart"></i>
+                            <span id="like-text">{% if is_liked %}Liked{% else %}Like{% endif %}</span>
                             (<span id="like-count">{{ post.like_count }}</span>)
                         </button>
                     </form>
-                </div>
+                {% else %}
+                    <a href="{% url 'userapp:login' %}?next={{ request.path }}" class="btn btn-outline-danger like-btn">
+                        <i class="fas fa-heart"></i> Like ({{ post.like_count }})
+                    </a>
                 {% endif %}
             </div>
-        </article>
+            
+            
+        </div>
 
         <!-- Comments Section -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Comments ({{ comments.count }})</h5>
+        <div class="comments-section">
+            <div class="comments-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-comments me-2"></i>
+                    Comments ({{ comments.count }})
+                </h5>
             </div>
-            <div class="card-body">
+            <div class="comments-body">
                 <!-- Add Comment Form -->
                 {% if user.is_authenticated %}
-                <form method="post" action="{% url 'blog:add_comment' post.slug %}" class="mb-4">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="content" class="form-label">Add a comment:</label>
-                        <textarea class="form-control" id="content" name="content" rows="3" required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Post Comment</button>
-                </form>
+                <div class="comment-form">
+                    <h6 class="mb-3">Leave a Comment</h6>
+                    <form method="post" action="{% url 'blog:add_comment' post.slug %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <textarea class="form-control" name="content" rows="4" 
+                                      placeholder="Share your thoughts..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i>Post Comment
+                        </button>
+                    </form>
+                </div>
                 {% else %}
                 <div class="alert alert-info">
-                    <a href="{% url 'userapp:login' %}?next={{ request.path }}" class="text-decoration-none">Login</a> to post a comment.
+                    <i class="fas fa-info-circle me-2"></i>
+                    <a href="{% url 'userapp:login' %}?next={{ request.path }}" class="text-decoration-none">Login</a> 
+                    to join the conversation.
                 </div>
                 {% endif %}
 
                 <!-- Comments List -->
                 {% for comment in comments %}
-                <div class="comment mb-3 p-3 border rounded">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <strong>{{ comment.author.username }}</strong>
-                        <small class="text-muted">{{ comment.created_at|date:"M d, Y H:i" }}</small>
+                <div class="comment-item">
+                    <div class="comment-header">
+                        <div class="comment-author">
+                            <i class="fas fa-user-circle me-2"></i>
+                            {{ comment.author.get_full_name|default:comment.author.username }}
+                        </div>
+                        <div class="comment-date">{{ comment.created_at|date:"M d, Y H:i" }}</div>
                     </div>
-                    <p class="mb-2">{{ comment.content|linebreaks }}</p>
+                    <div class="comment-content">{{ comment.content|linebreaks }}</div>
                     
                     <!-- Replies -->
                     {% for reply in comment.replies.all %}
-                    <div class="reply ms-4 mt-2 p-2 bg-light rounded">
-                        <div class="d-flex justify-content-between align-items-start mb-1">
-                            <strong>{{ reply.author.username }}</strong>
-                            <small class="text-muted">{{ reply.created_at|date:"M d, Y H:i" }}</small>
+                    <div class="reply-item">
+                        <div class="comment-header">
+                            <div class="comment-author">
+                                <i class="fas fa-reply me-2"></i>
+                                {{ reply.author.get_full_name|default:reply.author.username }}
+                            </div>
+                            <div class="comment-date">{{ reply.created_at|date:"M d, Y H:i" }}</div>
                         </div>
-                        <p class="mb-0 small">{{ reply.content|linebreaks }}</p>
+                        <div class="comment-content">{{ reply.content|linebreaks }}</div>
                     </div>
                     {% endfor %}
 
                     <!-- Reply Form -->
                     {% if user.is_authenticated %}
-                    <button class="btn btn-sm btn-outline-secondary mt-2 reply-toggle-btn" data-comment-id="{{ comment.id }}">
-                        Reply
+                    <button class="btn btn-sm btn-outline-primary mt-2 reply-toggle-btn" data-comment-id="{{ comment.id }}">
+                        <i class="fas fa-reply me-1"></i>Reply
                     </button>
-                    <form method="post" action="{% url 'blog:add_comment' post.slug %}" class="mt-2 reply-form" id="reply-form-{{ comment.id }}" style="display: none;">
+                    <form method="post" action="{% url 'blog:add_comment' post.slug %}" 
+                          class="mt-3 reply-form" id="reply-form-{{ comment.id }}" style="display: none;">
                         {% csrf_token %}
                         <input type="hidden" name="parent_id" value="{{ comment.id }}">
                         <div class="mb-2">
-                            <textarea class="form-control form-control-sm" name="content" rows="2" placeholder="Write a reply..." required></textarea>
+                            <textarea class="form-control form-control-sm" name="content" rows="3" 
+                                      placeholder="Write a reply..." required></textarea>
                         </div>
-                        <button type="submit" class="btn btn-sm btn-primary">Reply</button>
-                        <button type="button" class="btn btn-sm btn-secondary reply-cancel-btn" data-comment-id="{{ comment.id }}">Cancel</button>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-sm btn-primary">Reply</button>
+                            <button type="button" class="btn btn-sm btn-secondary reply-cancel-btn" 
+                                    data-comment-id="{{ comment.id }}">Cancel</button>
+                        </div>
                     </form>
                     {% endif %}
                 </div>
                 {% empty %}
-                <p class="text-muted">No comments yet. Be the first to comment!</p>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Sidebar -->
-    <div class="col-lg-4">
-        <!-- Author Info -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">About the Author</h5>
-            </div>
-            <div class="card-body">
-                <h6>{{ post.author.get_full_name|default:post.author.username }}</h6>
-                <p class="card-text">Member since {{ post.author.date_joined|date:"F Y" }}</p>
-                <small class="text-muted">
-                    Posts: {{ post.author.blog_posts.count }} • 
-                    Comments: {{ post.author.comments.count }}
-                </small>
-            </div>
-        </div>
-
-        <!-- Related Posts -->
-        {% if related_posts %}
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Related Posts</h5>
-            </div>
-            <div class="card-body">
-                {% for related_post in related_posts %}
-                <div class="mb-3">
-                    <h6 class="mb-1">
-                        <a href="{% url 'blog:post_detail' related_post.slug %}" class="text-decoration-none">
-                            {{ related_post.title|truncatechars:50 }}
-                        </a>
-                    </h6>
-                    <small class="text-muted">
-                        {{ related_post.created_at|date:"M d, Y" }} • 
-                        <i class="fas fa-eye"></i> {{ related_post.view_count }}
-                    </small>
+                <div class="text-center py-5">
+                    <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                    <h5>No comments yet</h5>
+                    <p class="text-muted">Be the first to share your thoughts!</p>
                 </div>
-                {% if not forloop.last %}<hr>{% endif %}
                 {% endfor %}
             </div>
         </div>
-        {% endif %}
     </div>
+
+ 
 </div>
 {% endblock %}
 
@@ -195,11 +551,12 @@ $(document).ready(function() {
             },
             success: function(response) {
                 $('#like-count').text(response.like_count);
+                const btn = $('#like-btn');
                 if (response.liked) {
-                    $('#like-btn i').removeClass('fa-heart-o').addClass('fa-heart');
-                    $('#like-text').text('Unlike');
+                    btn.removeClass('btn-outline-danger').addClass('btn-danger');
+                    $('#like-text').text('Liked');
                 } else {
-                    $('#like-btn i').removeClass('fa-heart').addClass('fa-heart-o');
+                    btn.removeClass('btn-danger').addClass('btn-outline-danger');
                     $('#like-text').text('Like');
                 }
             },
@@ -207,6 +564,14 @@ $(document).ready(function() {
                 alert('Error processing your request. Please try again.');
             }
         });
+    });
+
+    // Smooth scroll to comments when clicking comment count
+    $('a[href="#comments"]').on('click', function(e) {
+        e.preventDefault();
+        $('html, body').animate({
+            scrollTop: $('.comments-section').offset().top - 100
+        }, 800);
     });
 });
 </script>

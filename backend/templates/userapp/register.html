@@ -7,10 +7,8 @@
 <div class="row justify-content-center">
     <div class="col-md-8 col-lg-6">
         <div class="card">
-            <div class="card-header text-center">
-                <h4 class="mb-0">Create Account</h4>
-            </div>
             <div class="card-body">
+                <h4 class="text-center mb-4">Create Account</h4>
                 <form method="post">
                     {% csrf_token %}
                     <div class="row">
@@ -41,15 +39,15 @@
                         <label for="password2" class="form-label">Confirm Password</label>
                         <input type="password" class="form-control" id="password2" name="password2" required>
                     </div>
-                    <div class="d-grid">
+                    <div class="d-grid mb-3">
                         <button type="submit" class="btn btn-primary">Create Account</button>
                     </div>
                 </form>
-            </div>
-            <div class="card-footer text-center">
-                <small class="text-muted">
-                    Already have an account? <a href="{% url 'userapp:login' %}" class="text-decoration-none">Login here</a>
-                </small>
+                <div class="text-center">
+                    <small class="text-muted">
+                        Already have an account? <a href="{% url 'userapp:login' %}" class="text-decoration-none">Login here</a>
+                    </small>
+                </div>
             </div>
         </div>
     </div>

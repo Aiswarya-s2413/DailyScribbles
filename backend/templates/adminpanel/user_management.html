@@ -16,7 +16,7 @@
                         <select class="form-select" name="filter">
                             <option value="all" {% if filter_type == 'all' %}selected{% endif %}>All Users</option>
                             <option value="active" {% if filter_type == 'active' %}selected{% endif %}>Active Users</option>
-                            <option value="inactive" {% if filter_type == 'inactive' %}selected{% endif %}>Inactive Users</option>
+                            <option value="inactive" {% if filter_type == 'inactive' %}selected{% endif %}>Blocked Users</option>
                             <option value="staff" {% if filter_type == 'staff' %}selected{% endif %}>Staff Users</option>
                         </select>
                     </div>
@@ -79,7 +79,7 @@
                                 {% if user.is_active %}
                                     <span class="badge bg-success">Active</span>
                                 {% else %}
-                                    <span class="badge bg-secondary">Inactive</span>
+                                    <span class="badge bg-warning text-dark">Blocked</span>
                                 {% endif %}
                             </td>
                             <td>
@@ -97,10 +97,23 @@
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     {% if user != request.user and not user.is_superuser %}
-                                        <button type="button" class="btn btn-outline-danger" 
-                                                title="Delete" onclick="confirmDelete({{ user.id }}, '{{ user.username }}')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                        {% if user.is_active %}
+                                            <button type="button" class="btn btn-outline-warning" 
+                                                    title="Block User" 
+                                                    data-user-id="{{ user.id }}" 
+                                                    data-username="{{ user.username|escapejs }}"
+                                                    onclick="confirmBlock(this.dataset.userId, this.dataset.username)">
+                                                <i class="fas fa-ban"></i>
+                                            </button>
+                                        {% else %}
+                                            <button type="button" class="btn btn-outline-success" 
+                                                    title="Unblock User" 
+                                                    data-user-id="{{ user.id }}" 
+                                                    data-username="{{ user.username|escapejs }}"
+                                                    onclick="confirmUnblock(this.dataset.userId, this.dataset.username)">
+                                                <i class="fas fa-check-circle"></i>
+                                            </button>
+                                        {% endif %}
                                     {% endif %}
                                 </div>
                             </td>
@@ -159,23 +172,46 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
+<!-- Block Confirmation Modal -->
+<div class="modal fade" id="blockModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Confirm Delete</h5>
+                <h5 class="modal-title">Confirm Block User</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to delete user <strong id="deleteUsername"></strong>?</p>
-                <p class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i>This action cannot be undone.</p>
+                <p>Are you sure you want to block user <strong id="blockUsername"></strong>?</p>
+                <p class="text-warning"><i class="fas fa-exclamation-triangle me-1"></i>Blocked users will not be able to login to the system.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form id="deleteForm" method="post" style="display: inline;">
+                <form id="blockForm" method="post" style="display: inline;">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">Delete User</button>
+                    <button type="submit" class="btn btn-warning">Block User</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Unblock Confirmation Modal -->
+<div class="modal fade" id="unblockModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Unblock User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to unblock user <strong id="unblockUsername"></strong>?</p>
+                <p class="text-success"><i class="fas fa-info-circle me-1"></i>User will be able to login to the system again.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="unblockForm" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success">Unblock User</button>
                 </form>
             </div>
         </div>
@@ -185,10 +221,18 @@
 
 {% block extra_js %}
 <script>
-function confirmDelete(userId, username) {
-    document.getElementById('deleteUsername').textContent = username;
-    document.getElementById('deleteForm').action = '/adminpanel/users/' + userId + '/delete/';
-    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+function confirmBlock(userId, username) {
+    document.getElementById('blockUsername').textContent = username;
+    document.getElementById('blockForm').action = '/adminpanel/users/' + userId + '/block/';
+    var blockModal = new bootstrap.Modal(document.getElementById('blockModal'));
+    blockModal.show();
+}
+
+function confirmUnblock(userId, username) {
+    document.getElementById('unblockUsername').textContent = username;
+    document.getElementById('unblockForm').action = '/adminpanel/users/' + userId + '/unblock/';
+    var unblockModal = new bootstrap.Modal(document.getElementById('unblockModal'));
+    unblockModal.show();
 }
 </script>
 {% endblock %}

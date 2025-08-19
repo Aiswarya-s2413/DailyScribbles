@@ -295,11 +295,10 @@ def api_categories_list(request):
     return JsonResponse({'categories': categories_data})
 
 
-@csrf_exempt
 @require_POST
 def api_add_comment(request, slug):
-    """API endpoint to add a comment"""
-    if not request.user.is_authenticated:
+    """API endpoint to add a comment (expects JWT or session auth)"""
+    if not request.user or not request.user.is_authenticated:
         return JsonResponse({'error': 'Authentication required'}, status=401)
     
     post = get_object_or_404(BlogPost, slug=slug, status='published')

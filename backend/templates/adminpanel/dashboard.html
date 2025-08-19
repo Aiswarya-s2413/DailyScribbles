@@ -3,171 +3,208 @@
 {% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="row">
-    <!-- Stats Cards -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card stats-card">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-uppercase mb-1">Total Users</div>
-                        <div class="h5 mb-0 font-weight-bold">{{ total_users }}</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-users fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card stats-card">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-uppercase mb-1">Active Users</div>
-                        <div class="h5 mb-0 font-weight-bold">{{ active_users }}</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-user-check fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card stats-card">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-uppercase mb-1">Staff Users</div>
-                        <div class="h5 mb-0 font-weight-bold">{{ staff_users }}</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-user-shield fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card stats-card">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-uppercase mb-1">Inactive Users</div>
-                        <div class="h5 mb-0 font-weight-bold">{{ total_users|add:"-"|add:active_users }}</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-user-times fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Quick Actions -->
-<div class="row">
-    <div class="col-lg-6 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-bolt me-2"></i>Quick Actions
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{% url 'adminpanel:user_management' %}" class="btn btn-outline-primary">
-                        <i class="fas fa-users me-2"></i>Manage Users
-                    </a>
-                    <a href="{% url 'adminpanel:create_user' %}" class="btn btn-outline-success">
-                        <i class="fas fa-user-plus me-2"></i>Create New User
-                    </a>
-                    <a href="{% url 'admin:index' %}" class="btn btn-outline-info" target="_blank">
-                        <i class="fas fa-cog me-2"></i>Django Admin
-                    </a>
-                    <a href="{% url 'blog:post_list' %}" class="btn btn-outline-secondary" target="_blank">
-                        <i class="fas fa-external-link-alt me-2"></i>View Website
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-6 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-info-circle me-2"></i>System Information
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-sm-6">
-                        <strong>Django Version:</strong>
-                    </div>
-                    <div class="col-sm-6">
-                        5.2.5
-                    </div>
-                </div>
-                <hr>
-                <div class="row">
-                    <div class="col-sm-6">
-                        <strong>Database:</strong>
-                    </div>
-                    <div class="col-sm-6">
-                        SQLite
-                    </div>
-                </div>
-                <hr>
-                <div class="row">
-                    <div class="col-sm-6">
-                        <strong>Debug Mode:</strong>
-                    </div>
-                    <div class="col-sm-6">
-                        <span class="badge bg-warning">Enabled</span>
-                    </div>
-                </div>
-                <hr>
-                <div class="row">
-                    <div class="col-sm-6">
-                        <strong>Admin User:</strong>
-                    </div>
-                    <div class="col-sm-6">
-                        {{ request.user.username }}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Recent Activity -->
-<div class="row">
+<!-- Welcome Section -->
+<div class="row mb-4">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-clock me-2"></i>Welcome to Admin Panel
-                </h5>
-            </div>
             <div class="card-body">
-                <div class="alert alert-info">
-                    <h6><i class="fas fa-info-circle me-2"></i>Getting Started</h6>
-                    <p class="mb-2">Welcome to the Daily Scribbles Admin Panel! Here you can:</p>
-                    <ul class="mb-0">
-                        <li>Manage user accounts (view, edit, create, delete)</li>
-                        <li>Monitor user activity and statistics</li>
-                        <li>Access the Django admin for blog management</li>
-                        <li>View and manage the website content</li>
-                    </ul>
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-1">Welcome back, {{ request.user.first_name|default:request.user.username }}! 👋</h4>
+                        <p class="text-muted mb-0">Here's what's happening with your blog today.</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'adminpanel:create_blog' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>New Post
+                        </a>
+                        <a href="{% url 'blog:post_list' %}" class="btn btn-outline-primary" target="_blank">
+                            <i class="fas fa-external-link-alt me-2"></i>View Site
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
+
+<!-- User Statistics -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h5 class="mb-3">User Statistics</h5>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="stats-label">Total Users</div>
+                        <div class="stats-number">{{ total_users }}</div>
+                    </div>
+                    <div class="stats-icon primary">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card success">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="stats-label">Active Users</div>
+                        <div class="stats-number">{{ active_users }}</div>
+                    </div>
+                    <div class="stats-icon success">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card info">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="stats-label">Staff Users</div>
+                        <div class="stats-number">{{ staff_users }}</div>
+                    </div>
+                    <div class="stats-icon info">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card danger">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="stats-label">Blocked Users</div>
+                        <div class="stats-number">{{ blocked_users }}</div>
+                    </div>
+                    <div class="stats-icon danger">
+                        <i class="fas fa-user-slash"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Statistics -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h5 class="mb-3">Content Statistics</h5>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="stats-label">Total Posts</div>
+                        <div class="stats-number">{{ total_blogs }}</div>
+                    </div>
+                    <div class="stats-icon primary">
+                        <i class="fas fa-newspaper"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card success">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="stats-label">Published</div>
+                        <div class="stats-number">{{ published_blogs }}</div>
+                    </div>
+                    <div class="stats-icon success">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card warning">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="stats-label">Drafts</div>
+                        <div class="stats-number">{{ draft_blogs }}</div>
+                    </div>
+                    <div class="stats-icon warning">
+                        <i class="fas fa-edit"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card info">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="stats-label">Categories</div>
+                        <div class="stats-number">{{ total_categories }}</div>
+                    </div>
+                    <div class="stats-icon info">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Engagement Statistics -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h5 class="mb-3">Engagement</h5>
+    </div>
+    <div class="col-xl-6 col-md-6 mb-4">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="stats-label">Total Comments</div>
+                        <div class="stats-number">{{ total_comments }}</div>
+                    </div>
+                    <div class="stats-icon primary">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-6 col-md-6 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-1">Comment Management</h6>
+                        <p class="text-muted mb-0">Manage user comments and feedback</p>
+                    </div>
+                    <a href="{% url 'adminpanel:comment_management' %}" class="btn btn-primary">
+                        <i class="fas fa-comments me-2"></i>Manage
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 </div>
 {% endblock %}

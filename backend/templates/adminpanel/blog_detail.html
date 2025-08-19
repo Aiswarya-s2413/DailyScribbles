@@ -1,0 +1,283 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block title %}{{ blog.title }} - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{{ blog.title|truncatechars:50 }}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'adminpanel:edit_blog' blog.id %}" class="btn btn-primary">
+                <i class="fas fa-edit me-2"></i>Edit Post
+            </a>
+            <a href="{{ blog.get_absolute_url }}" class="btn btn-outline-info" target="_blank">
+                <i class="fas fa-external-link-alt me-2"></i>View on Site
+            </a>
+        </div>
+        <a href="{% url 'adminpanel:blog_management' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Posts
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Post Content -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-file-alt me-2"></i>Post Content
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if blog.featured_image %}
+                    <div class="mb-4">
+                        <img src="{{ blog.featured_image.url }}" alt="{{ blog.title }}" 
+                             class="img-fluid rounded" style="max-height: 300px; width: 100%; object-fit: cover;">
+                    </div>
+                {% endif %}
+
+                <h2>{{ blog.title }}</h2>
+                
+                {% if blog.excerpt %}
+                    <div class="alert alert-light border-start border-primary border-4 mb-4">
+                        <strong>Excerpt:</strong> {{ blog.excerpt }}
+                    </div>
+                {% endif %}
+
+                <div class="content">
+                    {{ blog.content|linebreaks }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Attachments -->
+        {% if attachments %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-paperclip me-2"></i>Attachments ({{ attachments.count }})
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for attachment in attachments %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-file fa-2x text-muted me-3"></i>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">{{ attachment.title|default:attachment.file.name }}</h6>
+                                        <small class="text-muted">{{ attachment.uploaded_at|date:"M d, Y" }}</small>
+                                    </div>
+                                    <a href="{{ attachment.file.url }}" class="btn btn-sm btn-outline-primary" 
+                                       target="_blank" title="Download">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Comments -->
+        {% if comments %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-comments me-2"></i>Comments ({{ comments.count }})
+                </h5>
+            </div>
+            <div class="card-body">
+                {% for comment in comments %}
+                <div class="d-flex mb-3 {% if not forloop.last %}border-bottom pb-3{% endif %}">
+                    <div class="flex-shrink-0">
+                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 40px; height: 40px;">
+                            <i class="fas fa-user text-white"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">{{ comment.author.username }}</h6>
+                                <small class="text-muted">{{ comment.created_at|date:"M d, Y H:i" }}</small>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-{% if comment.status == 'approved' %}success{% elif comment.status == 'pending' %}warning{% else %}danger{% endif %}">
+                                    {{ comment.get_status_display }}
+                                </span>
+                                <form method="post" action="{% url 'adminpanel:approve_comment' blog.id comment.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button class="btn btn-sm btn-outline-success" {% if comment.status == 'approved' %}disabled{% endif %}>
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </form>
+                                <form method="post" action="{% url 'adminpanel:reject_comment' blog.id comment.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button class="btn btn-sm btn-outline-danger" {% if comment.status == 'rejected' %}disabled{% endif %}>
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <p class="mb-0 mt-2">{{ comment.content }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Post Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Post Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Status:</strong></div>
+                    <div class="col-sm-7">
+                        {% if blog.status == 'published' %}
+                            <span class="badge bg-success">Published</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Draft</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Author:</strong></div>
+                    <div class="col-sm-7">{{ blog.author.username }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Category:</strong></div>
+                    <div class="col-sm-7">
+                        {% if blog.category %}
+                            <span class="badge bg-info">{{ blog.category.name }}</span>
+                        {% else %}
+                            <span class="text-muted">Uncategorized</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Featured:</strong></div>
+                    <div class="col-sm-7">
+                        {% if blog.is_featured %}
+                            <span class="badge bg-warning text-dark">Yes</span>
+                        {% else %}
+                            <span class="text-muted">No</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Views:</strong></div>
+                    <div class="col-sm-7">{{ blog.view_count }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Likes:</strong></div>
+                    <div class="col-sm-7">{{ blog.like_count }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-5"><strong>Created:</strong></div>
+                    <div class="col-sm-7">{{ blog.created_at|date:"M d, Y H:i" }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-5"><strong>Updated:</strong></div>
+                    <div class="col-sm-7">{{ blog.updated_at|date:"M d, Y H:i" }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-tools me-2"></i>Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'adminpanel:edit_blog' blog.id %}" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>Edit Post
+                    </a>
+                    <a href="{{ blog.get_absolute_url }}" class="btn btn-outline-info" target="_blank">
+                        <i class="fas fa-external-link-alt me-2"></i>View on Site
+                    </a>
+                    <button type="button" class="btn btn-outline-danger" 
+                            data-blog-id="{{ blog.id }}" 
+                            data-blog-title="{{ blog.title|escapejs }}"
+                            onclick="confirmDelete(this.dataset.blogId, this.dataset.blogTitle)">
+                        <i class="fas fa-trash me-2"></i>Delete Post
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEO Info -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-search me-2"></i>SEO Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-sm-4"><strong>Slug:</strong></div>
+                    <div class="col-sm-8">
+                        <code>{{ blog.slug }}</code>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-4"><strong>URL:</strong></div>
+                    <div class="col-sm-8">
+                        <small class="text-muted">{{ request.get_host }}{{ blog.get_absolute_url }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the blog post <strong id="deleteBlogTitle"></strong>?</p>
+                <p class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i>This action cannot be undone and will also delete all associated comments and likes.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete Post</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(blogId, blogTitle) {
+    document.getElementById('deleteBlogTitle').textContent = blogTitle;
+    document.getElementById('deleteForm').action = '/adminpanel/blogs/' + blogId + '/delete/';
+    var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    deleteModal.show();
+}
+</script>
+{% endblock %}

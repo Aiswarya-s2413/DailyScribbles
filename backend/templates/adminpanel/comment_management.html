@@ -1,0 +1,342 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block page_title %}Comment Management{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-comments me-2"></i>Comment Management</h2>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Total Comments</div>
+                        <div class="h5 mb-0 font-weight-bold">{{ total_comments }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-comments fa-2x text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Pending</div>
+                        <div class="h5 mb-0 font-weight-bold">{{ pending_comments }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clock fa-2x text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Approved</div>
+                        <div class="h5 mb-0 font-weight-bold">{{ approved_comments }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Rejected</div>
+                        <div class="h5 mb-0 font-weight-bold">{{ rejected_comments }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-times-circle fa-2x text-danger"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label for="search" class="form-label">Search</label>
+                <input type="text" class="form-control" id="search" name="search" 
+                       value="{{ search_query }}" placeholder="Search comments, authors, or posts...">
+            </div>
+            <div class="col-md-3">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+                    <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="post" class="form-label">Blog Post</label>
+                <select class="form-select" id="post" name="post">
+                    <option value="all" {% if post_filter == 'all' %}selected{% endif %}>All Posts</option>
+                    {% for blog_post in blog_posts %}
+                        <option value="{{ blog_post.id }}" {% if post_filter == blog_post.id|stringformat:"s" %}selected{% endif %}>
+                            {{ blog_post.title|truncatechars:50 }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="fas fa-search"></i> Filter
+                </button>
+                <a href="{% url 'adminpanel:comment_management' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times"></i> Clear
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Comments List -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            Comments 
+            {% if filtered_count != total_comments %}
+                ({{ filtered_count }} of {{ total_comments }})
+            {% else %}
+                ({{ total_comments }})
+            {% endif %}
+        </h5>
+        <div>
+            <button type="button" class="btn btn-success btn-sm" onclick="bulkAction('approve')">
+                <i class="fas fa-check"></i> Bulk Approve
+            </button>
+            <button type="button" class="btn btn-warning btn-sm" onclick="bulkAction('reject')">
+                <i class="fas fa-times"></i> Bulk Reject
+            </button>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if page_obj %}
+            <form id="bulkForm" method="post">
+                {% csrf_token %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="40">
+                                    <input type="checkbox" id="selectAll" class="form-check-input">
+                                </th>
+                                <th>Author</th>
+                                <th>Blog Post</th>
+                                <th>Comment</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th width="150">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for comment in page_obj %}
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" name="comment_ids" value="{{ comment.id }}" class="form-check-input comment-checkbox">
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm me-2">
+                                                <div class="avatar-title bg-primary rounded-circle">
+                                                    {{ comment.author.username|first|upper }}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <strong>{{ comment.author.username }}</strong>
+                                                <br><small class="text-muted">{{ comment.author.email }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'blog:post_detail' comment.post.slug %}" target="_blank" class="text-decoration-none">
+                                            {{ comment.post.title|truncatechars:40 }}
+                                            <i class="fas fa-external-link-alt fa-xs ms-1"></i>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <div class="comment-content">
+                                            {{ comment.content|truncatechars:100 }}
+                                        </div>
+                                        {% if comment.parent %}
+                                            <small class="text-muted">
+                                                <i class="fas fa-reply"></i> Reply to {{ comment.parent.author.username }}
+                                            </small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if comment.status == 'approved' %}success{% elif comment.status == 'pending' %}warning{% else %}danger{% endif %}">
+                                            {{ comment.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <small>{{ comment.created_at|date:"M d, Y" }}</small>
+                                        <br><small class="text-muted">{{ comment.created_at|time:"H:i" }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            {% if comment.status != 'approved' %}
+                                                <form method="post" action="{% url 'adminpanel:approve_comment' comment.post.id comment.id %}" style="display:inline;">
+                                                    {% csrf_token %}
+                                                    <button class="btn btn-sm btn-outline-success" title="Approve">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                            {% if comment.status != 'rejected' %}
+                                                <form method="post" action="{% url 'adminpanel:reject_comment' comment.post.id comment.id %}" style="display:inline;">
+                                                    {% csrf_token %}
+                                                    <button class="btn btn-sm btn-outline-warning" title="Reject">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                            <form method="post" action="{% url 'adminpanel:delete_comment' comment.id %}" 
+                                                  style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this comment?');">
+                                                {% csrf_token %}
+                                                <button class="btn btn-sm btn-outline-danger" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No comments found</h5>
+                <p class="text-muted">No comments match your current filters.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+    <nav aria-label="Comments pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if post_filter != 'all' %}&post={{ post_filter }}{% endif %}">First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if post_filter != 'all' %}&post={{ post_filter }}{% endif %}">Previous</a>
+                </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            </li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if post_filter != 'all' %}&post={{ post_filter }}{% endif %}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if post_filter != 'all' %}&post={{ post_filter }}{% endif %}">Last</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+
+<script>
+// Select all checkbox functionality
+document.getElementById('selectAll').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.comment-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = this.checked;
+    });
+});
+
+// Bulk actions
+function bulkAction(action) {
+    const checkedBoxes = document.querySelectorAll('.comment-checkbox:checked');
+    if (checkedBoxes.length === 0) {
+        alert('Please select at least one comment.');
+        return;
+    }
+    
+    const actionText = action === 'approve' ? 'approve' : 'reject';
+    if (confirm(`Are you sure you want to ${actionText} ${checkedBoxes.length} comment(s)?`)) {
+        const form = document.getElementById('bulkForm');
+        if (action === 'approve') {
+            form.action = '{% url "adminpanel:bulk_approve_comments" %}';
+        } else {
+            form.action = '{% url "adminpanel:bulk_reject_comments" %}';
+        }
+        form.submit();
+    }
+}
+
+// Avatar styling
+document.addEventListener('DOMContentLoaded', function() {
+    const avatars = document.querySelectorAll('.avatar-title');
+    const colors = ['bg-primary', 'bg-success', 'bg-info', 'bg-warning', 'bg-danger', 'bg-secondary'];
+    avatars.forEach((avatar, index) => {
+        avatar.className = avatar.className.replace('bg-primary', colors[index % colors.length]);
+    });
+});
+</script>
+
+<style>
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+}
+
+.avatar-title {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+}
+
+.comment-content {
+    max-width: 300px;
+    word-wrap: break-word;
+}
+
+.stats-card {
+    border-left: 4px solid #007bff;
+}
+
+.stats-card .text-primary { color: #007bff !important; }
+.stats-card .text-warning { color: #ffc107 !important; }
+.stats-card .text-success { color: #28a745 !important; }
+.stats-card .text-danger { color: #dc3545 !important; }
+</style>
+{% endblock %}
