@@ -3,120 +3,293 @@
 
 {% block title %}Profile - Daily Scribbles{% endblock %}
 
-{% block content %}
-<div class="row">
-    <!-- Profile Info -->
-    <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Profile Information</h5>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="first_name" class="form-label">First Name</label>
-                        <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="last_name" class="form-label">Last Name</label>
-                        <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Username</label>
-                        <input type="text" class="form-control" value="{{ user.username }}" readonly>
-                        <div class="form-text">Username cannot be changed.</div>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Update Profile</button>
-                </form>
-            </div>
-        </div>
+{% block extra_css %}
+<style>
+.profile-container {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 2px solid #e2e8f0;
+    margin-bottom: 2rem;
+}
 
-        <!-- Stats -->
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5 class="mb-0">Statistics</h5>
-            </div>
-            <div class="card-body">
-                <div class="row text-center">
-                    <div class="col-6">
-                        <h4 class="text-primary">{{ user.blog_posts.count }}</h4>
-                        <small class="text-muted">Posts</small>
-                    </div>
-                    <div class="col-6">
-                        <h4 class="text-success">{{ user.comments.count }}</h4>
-                        <small class="text-muted">Comments</small>
-                    </div>
-                </div>
-                <hr>
-                <small class="text-muted">Member since {{ user.date_joined|date:"F Y" }}</small>
-            </div>
+.profile-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: white;
+    font-size: 2.5rem;
+    box-shadow: 0 8px 25px rgba(79, 70, 229, 0.3);
+}
+
+.profile-name {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 0.5rem;
+}
+
+.profile-username {
+    color: #64748b;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.stats-card {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.5px;
+}
+
+.activity-item {
+    padding: 1.5rem;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.activity-item:hover {
+    background: white;
+    border-color: var(--primary-color);
+    transform: translateX(5px);
+}
+
+.activity-title {
+    font-weight: 600;
+    color: #1a202c;
+    margin-bottom: 0.5rem;
+}
+
+.activity-meta {
+    color: #64748b;
+    font-size: 0.875rem;
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 1.5rem;
+    position: relative;
+    padding-left: 1rem;
+}
+
+.section-title::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    border-radius: 2px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #64748b;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-avatar">
+            <i class="fas fa-user"></i>
         </div>
+        <h1 class="profile-name">
+            {% if user.first_name or user.last_name %}
+                {{ user.first_name }} {{ user.last_name }}
+            {% else %}
+                {{ user.username }}
+            {% endif %}
+        </h1>
+        <p class="profile-username">@{{ user.username }}</p>
+        <small class="text-muted">
+            <i class="fas fa-calendar-alt me-1"></i>
+            Member since {{ user.date_joined|date:"F Y" }}
+        </small>
     </div>
 
-    <!-- Recent Activity -->
-    <div class="col-lg-8">
-        <!-- Recent Posts -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">Recent Posts</h5>
+    <div class="row">
+        <!-- Profile Info -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-edit me-2"></i>
+                        Profile Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="first_name" class="form-label">First Name</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input type="text" class="form-control" value="{{ user.username }}" readonly>
+                            <div class="form-text">Username cannot be changed.</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-save me-2"></i>
+                            Update Profile
+                        </button>
+                    </form>
+                </div>
             </div>
-            <div class="card-body">
-                {% for post in user_posts %}
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div>
-                        <h6 class="mb-1">
-                            <a href="{% url 'blog:post_detail' post.slug %}" class="text-decoration-none">
-                                {{ post.title }}
-                            </a>
-                        </h6>
-                        <small class="text-muted">
-                            {{ post.created_at|date:"M d, Y" }} • 
-                            Status: <span class="badge bg-{% if post.status == 'published' %}success{% else %}warning{% endif %}">{{ post.get_status_display }}</span>
-                        </small>
+
+            <!-- Stats -->
+            <div class="mt-4">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="stats-card">
+                            <div class="stat-number text-primary">{{ user.blog_posts.count }}</div>
+                            <div class="stat-label">Posts</div>
+                        </div>
                     </div>
-                    <div class="text-end">
-                        <small class="text-muted">
-                            <i class="fas fa-eye"></i> {{ post.view_count }}
-                            <i class="fas fa-heart ms-1"></i> {{ post.like_count }}
-                        </small>
+                    <div class="col-6">
+                        <div class="stats-card">
+                            <div class="stat-number text-success">{{ user.comments.count }}</div>
+                            <div class="stat-label">Comments</div>
+                        </div>
                     </div>
                 </div>
-                {% if not forloop.last %}<hr>{% endif %}
-                {% empty %}
-                <p class="text-muted">You haven't written any posts yet.</p>
-                {% endfor %}
             </div>
         </div>
 
-        <!-- Recent Comments -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Recent Comments</h5>
+        <!-- Recent Activity -->
+        <div class="col-lg-8">
+            <!-- Recent Posts -->
+            <div class="mb-4">
+                <h2 class="section-title">
+                    <i class="fas fa-blog me-2"></i>
+                    Recent Posts
+                </h2>
+                {% for post in user_posts %}
+                <div class="activity-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="activity-title">
+                                <a href="{% url 'blog:post_detail' post.slug %}" class="text-decoration-none">
+                                    {{ post.title }}
+                                </a>
+                            </h6>
+                            <div class="activity-meta">
+                                <i class="fas fa-calendar me-1"></i>
+                                {{ post.created_at|date:"M d, Y" }}
+                                <span class="mx-2">•</span>
+                                <span class="badge bg-{% if post.status == 'published' %}success{% else %}warning{% endif %}">
+                                    {{ post.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="activity-meta">
+                                <i class="fas fa-eye me-1"></i>{{ post.view_count }}
+                                <span class="mx-2">•</span>
+                                <i class="fas fa-heart me-1"></i>{{ post.like_count }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    <i class="fas fa-pen-alt"></i>
+                    <h5>No posts yet</h5>
+                    <p>You haven't written any posts yet. Start sharing your thoughts!</p>
+                </div>
+                {% endfor %}
             </div>
-            <div class="card-body">
+
+            <!-- Recent Comments -->
+            <div class="mb-4">
+                <h2 class="section-title">
+                    <i class="fas fa-comments me-2"></i>
+                    Recent Comments
+                </h2>
                 {% for comment in user_comments %}
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-start mb-1">
-                        <h6 class="mb-1">
+                <div class="activity-item">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="activity-title">
                             <a href="{% url 'blog:post_detail' comment.post.slug %}" class="text-decoration-none">
                                 {{ comment.post.title|truncatechars:50 }}
                             </a>
                         </h6>
-                        <small class="text-muted">{{ comment.created_at|date:"M d, Y" }}</small>
+                        <div class="activity-meta">
+                            <i class="fas fa-calendar me-1"></i>
+                            {{ comment.created_at|date:"M d, Y" }}
+                        </div>
                     </div>
-                    <p class="mb-1 small">{{ comment.content|truncatechars:100 }}</p>
-                    <small class="text-muted">
-                        Status: <span class="badge bg-{% if comment.status == 'approved' %}success{% elif comment.status == 'pending' %}warning{% else %}danger{% endif %}">{{ comment.get_status_display }}</span>
-                    </small>
+                    <p class="mb-2 text-muted">{{ comment.content|truncatechars:100 }}</p>
+                    <div class="activity-meta">
+                        <span class="badge bg-{% if comment.status == 'approved' %}success{% elif comment.status == 'pending' %}warning{% else %}danger{% endif %}">
+                            {{ comment.get_status_display }}
+                        </span>
+                    </div>
                 </div>
-                {% if not forloop.last %}<hr>{% endif %}
                 {% empty %}
-                <p class="text-muted">You haven't made any comments yet.</p>
+                <div class="empty-state">
+                    <i class="fas fa-comment-alt"></i>
+                    <h5>No comments yet</h5>
+                    <p>You haven't made any comments yet. Join the conversation!</p>
+                </div>
                 {% endfor %}
             </div>
         </div>

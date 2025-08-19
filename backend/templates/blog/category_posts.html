@@ -3,89 +3,295 @@
 
 {% block title %}{{ category.name }} - Daily Scribbles{% endblock %}
 
+{% block extra_css %}
+<style>
+.category-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: white;
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.category-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="20" cy="80" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    opacity: 0.3;
+}
+
+.category-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.category-header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.category-header .post-count {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    display: inline-block;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+}
+
+.post-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.post-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 2px solid #e2e8f0;
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.post-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    border-color: var(--primary-color);
+}
+
+.post-image {
+    height: 220px;
+    overflow: hidden;
+    position: relative;
+}
+
+.post-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.post-card:hover .post-image img {
+    transform: scale(1.05);
+}
+
+.post-content {
+    padding: 1.5rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.post-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+}
+
+.post-title a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.post-title a:hover {
+    color: var(--primary-color);
+}
+
+.post-excerpt {
+    color: #64748b;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    flex-grow: 1;
+}
+
+.post-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+    font-size: 0.875rem;
+    color: #64748b;
+}
+
+.post-author {
+    font-weight: 600;
+}
+
+.post-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.post-stats span {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.empty-category {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 20px;
+    border: 2px solid #e2e8f0;
+}
+
+.empty-category i {
+    font-size: 4rem;
+    color: #cbd5e1;
+    margin-bottom: 1.5rem;
+}
+
+.empty-category h4 {
+    color: #1a202c;
+    margin-bottom: 1rem;
+}
+
+.empty-category p {
+    color: #64748b;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+    .post-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .category-header {
+        padding: 2rem 1.5rem;
+    }
+    
+    .category-header h1 {
+        font-size: 2rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <!-- Category Header -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <h1 class="card-title">{{ category.name }}</h1>
-                {% if category.description %}
-                <p class="card-text">{{ category.description }}</p>
-                {% endif %}
-                <small class="text-muted">{{ page_obj.paginator.count }} post{{ page_obj.paginator.count|pluralize }}</small>
-            </div>
-        </div>
-
-        <!-- Posts -->
-        <div class="row">
-            {% for post in page_obj %}
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100">
-                    {% if post.featured_image %}
-                        <img src="{{ post.featured_image.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 200px; object-fit: cover;">
-                    {% endif %}
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">
-                            <a href="{% url 'blog:post_detail' post.slug %}" class="text-decoration-none">
-                                {{ post.title }}
-                            </a>
-                        </h5>
-                        <p class="card-text">{{ post.excerpt|truncatechars:100 }}</p>
-                        <div class="mt-auto">
-                            <small class="text-muted">
-                                By {{ post.author.username }} • {{ post.created_at|date:"M d, Y" }}
-                            </small>
-                            <div class="mt-2">
-                                <small class="text-muted">
-                                    <i class="fas fa-eye"></i> {{ post.view_count }}
-                                    <i class="fas fa-heart ms-2"></i> {{ post.like_count }}
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% empty %}
-            <div class="col-12">
-                <div class="text-center py-5">
-                    <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
-                    <h4>No posts in this category</h4>
-                    <p class="text-muted">This category doesn't have any published posts yet.</p>
-                    <a href="{% url 'blog:post_list' %}" class="btn btn-primary">Browse All Posts</a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-
-        <!-- Pagination -->
-        {% if page_obj.has_other_pages %}
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center">
-                {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page=1">First</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
-                    </li>
-                {% endif %}
-
-                <li class="page-item active">
-                    <span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-                </li>
-
-                {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
-                    </li>
-                {% endif %}
-            </ul>
-        </nav>
-        {% endif %}
+<!-- Category Header -->
+<div class="category-header">
+    <h1>{{ category.name }}</h1>
+    {% if category.description %}
+    <p>{{ category.description }}</p>
+    {% endif %}
+    <div class="post-count">
+        <i class="fas fa-file-alt me-2"></i>
+        {{ page_obj.paginator.count }} post{{ page_obj.paginator.count|pluralize }}
     </div>
 </div>
+
+<!-- Posts Grid -->
+{% if page_obj %}
+<div class="post-grid">
+    {% for post in page_obj %}
+    <article class="post-card">
+        {% if post.featured_image %}
+        <div class="post-image">
+            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}">
+        </div>
+        {% endif %}
+        <div class="post-content">
+            <h2 class="post-title">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'blog:post_detail' post.slug %}">{{ post.title }}</a>
+                {% else %}
+                    <a href="{% url 'userapp:login' %}?next={% url 'blog:post_detail' post.slug %}">{{ post.title }}</a>
+                {% endif %}
+            </h2>
+            <p class="post-excerpt">{{ post.excerpt|truncatechars:120 }}</p>
+            <div class="post-meta">
+                <div>
+                    <span class="post-author">{{ post.author.username }}</span>
+                    <span class="mx-1">•</span>
+                    <span>{{ post.created_at|date:"M d, Y" }}</span>
+                </div>
+                <div class="post-stats">
+                    <span>
+                        <i class="fas fa-eye"></i>
+                        {{ post.view_count }}
+                    </span>
+                    <span>
+                        <i class="fas fa-heart"></i>
+                        {{ post.like_count }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </article>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-category">
+    <i class="fas fa-folder-open"></i>
+    <h4>No posts in this category</h4>
+    <p>This category doesn't have any published posts yet.</p>
+    <a href="{% url 'blog:post_list' %}" class="btn btn-primary">
+        <i class="fas fa-arrow-left me-2"></i>
+        Browse All Posts
+    </a>
+</div>
+{% endif %}
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">
+                    <i class="fas fa-angle-double-left me-1"></i>First
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                    <i class="fas fa-angle-left me-1"></i>Previous
+                </a>
+            </li>
+        {% endif %}
+
+        <li class="page-item active">
+            <span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        </li>
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                    Next<i class="fas fa-angle-right ms-1"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
+                    Last<i class="fas fa-angle-double-right ms-1"></i>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
 {% endblock %}
