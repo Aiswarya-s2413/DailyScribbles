@@ -12,10 +12,14 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+from dotenv import load_dotenv
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Explicitly load .env from the backend directory to avoid CWD issues
+load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
@@ -202,7 +206,7 @@ if USE_S3:
     
     # Use S3 for media files
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
 else:
     # Local storage for development
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
