@@ -242,6 +242,16 @@ AWS_ACCESS_KEY_ID=your_aws_key
 AWS_SECRET_ACCESS_KEY=your_aws_secret
 ```
 
+## 🤝 Contributing
+
+We welcome contributions! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
 ### Development Guidelines
 - Follow PEP 8 style guidelines
 - Write tests for new features
@@ -252,6 +262,34 @@ AWS_SECRET_ACCESS_KEY=your_aws_secret
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## 🙏 Acknowledgments
 
+- Django community for the excellent framework
+- Bootstrap team for the responsive UI components
+- Font Awesome for the beautiful icons
+- AWS for reliable cloud storage solutions
+
+## 📞 Support
+
+If you encounter any issues or have questions:
+
+1. Check the [Issues](https://github.com/yourusername/DailyScribbles/issues) page
+2. Create a new issue with detailed information
+3. Contact the maintainers
+
+## 🔮 Roadmap
+
+- [ ] **Search Functionality**: Full-text search across posts
+- [ ] **Email Notifications**: Comment and post notifications
+- [ ] **Social Media Integration**: Share posts on social platforms
+- [ ] **Multi-language Support**: Internationalization
+- [ ] **Advanced Analytics**: Detailed engagement metrics
+- [ ] **Mobile App**: React Native companion app
+- [ ] **Newsletter System**: Email subscriptions
+- [ ] **Advanced Editor**: WYSIWYG editor with more features
+
+---
+
+**Made with ❤️ by [Your Name]**
 
 *DailyScribbles - Where every thought becomes a story*
