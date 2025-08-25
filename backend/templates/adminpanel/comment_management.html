@@ -202,7 +202,7 @@
                                     <td>
                                         <div class="btn-group" role="group">
                                             {% if comment.status != 'approved' %}
-                                                <form method="post" action="{% url 'adminpanel:approve_comment' comment.post.id comment.id %}" style="display:inline;">
+                                                <form method="post" action="{% url 'adminpanel:approve_comment' comment.post.id comment.id %}" style="display:inline;" onsubmit="return confirm('Are you sure you want to approve this comment?');">
                                                     {% csrf_token %}
                                                     <button type="submit" class="btn btn-sm btn-outline-success" title="Approve">
                                                         <i class="fas fa-check"></i>
@@ -210,7 +210,7 @@
                                                 </form>
                                             {% endif %}
                                             {% if comment.status != 'rejected' %}
-                                                <form method="post" action="{% url 'adminpanel:reject_comment' comment.post.id comment.id %}" style="display:inline;">
+                                                <form method="post" action="{% url 'adminpanel:reject_comment' comment.post.id comment.id %}" style="display:inline;" onsubmit="return confirm('Are you sure you want to reject this comment?');">
                                                     {% csrf_token %}
                                                     <button type="submit" class="btn btn-sm btn-outline-warning" title="Reject">
                                                         <i class="fas fa-times"></i>
