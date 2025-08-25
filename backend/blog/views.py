@@ -14,7 +14,6 @@ User = get_user_model()
 
 
 def get_client_ip(request):
-    """Get client IP address from request"""
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
         ip = x_forwarded_for.split(',')[0]
@@ -23,12 +22,9 @@ def get_client_ip(request):
     return ip
 
 
-# Frontend Template Views
 def blog_list_view(request):
-    """Main blog list page"""
     posts = BlogPost.objects.filter(status='published').select_related('author', 'category')
     
-    # Search functionality
     search_query = request.GET.get('search')
     if search_query:
         posts = posts.filter(
@@ -42,15 +38,12 @@ def blog_list_view(request):
     if category_slug:
         posts = posts.filter(category__slug=category_slug)
     
-    # Featured posts
     featured_posts = posts.filter(is_featured=True)[:3]
     
-    # Pagination
     paginator = Paginator(posts, 6)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Get categories for sidebar
     categories = Category.objects.all()
     
     context = {
@@ -64,7 +57,6 @@ def blog_list_view(request):
 
 
 def blog_detail_view(request, slug):
-    """Blog post detail page"""
     post = get_object_or_404(BlogPost, slug=slug, status='published')
     
     # Increment view count
@@ -77,7 +69,7 @@ def blog_detail_view(request, slug):
         parent=None
     ).select_related('author').prefetch_related('replies')
     
-    # Check if user has liked the post
+    # Check if user liked the post
     is_liked = False
     if request.user.is_authenticated:
         is_liked = Like.objects.filter(user=request.user, post=post).exists()
@@ -100,7 +92,6 @@ def blog_detail_view(request, slug):
 @login_required
 @require_POST
 def add_comment(request, slug):
-    """Add a comment to a blog post"""
     post = get_object_or_404(BlogPost, slug=slug, status='published')
     content = request.POST.get('content')
     parent_id = request.POST.get('parent_id')
@@ -126,7 +117,6 @@ def add_comment(request, slug):
 @login_required
 @require_POST
 def toggle_like(request, slug):
-    """Toggle like/unlike for a blog post"""
     post = get_object_or_404(BlogPost, slug=slug, status='published')
     
     like, created = Like.objects.get_or_create(
@@ -160,14 +150,12 @@ def toggle_like(request, slug):
 
 
 def category_view(request, slug):
-    """Category-specific blog posts"""
     category = get_object_or_404(Category, slug=slug)
     posts = BlogPost.objects.filter(
         category=category, 
         status='published'
     ).select_related('author')
     
-    # Pagination
     paginator = Paginator(posts, 6)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -181,7 +169,6 @@ def category_view(request, slug):
 
 # Simple JSON API Endpoints
 def api_posts_list(request):
-    """API endpoint for blog posts"""
     posts = BlogPost.objects.filter(status='published').select_related('author', 'category')
     
     # Apply filters
@@ -196,7 +183,6 @@ def api_posts_list(request):
             Q(content__icontains=search)
         )
     
-    # Pagination
     page = int(request.GET.get('page', 1))
     per_page = int(request.GET.get('per_page', 10))
     
@@ -228,10 +214,9 @@ def api_posts_list(request):
 
 
 def api_post_detail(request, slug):
-    """API endpoint for single blog post"""
     post = get_object_or_404(BlogPost, slug=slug, status='published')
     
-    # Increment view count for API requests too
+    # Increment view count
     BlogPost.objects.filter(id=post.id).update(view_count=F('view_count') + 1)
     
     # Get comments
@@ -279,7 +264,6 @@ def api_post_detail(request, slug):
 
 
 def api_categories_list(request):
-    """API endpoint for categories"""
     categories = Category.objects.all()
     categories_data = []
     
@@ -297,7 +281,6 @@ def api_categories_list(request):
 
 @require_POST
 def api_add_comment(request, slug):
-    """API endpoint to add a comment (expects JWT or session auth)"""
     if not request.user or not request.user.is_authenticated:
         return JsonResponse({'error': 'Authentication required'}, status=401)
     

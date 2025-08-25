@@ -15,12 +15,10 @@ User = get_user_model()
 
 
 def is_admin(user):
-    """Check if user is admin (staff or superuser)"""
     return user.is_authenticated and (user.is_staff or user.is_superuser)
 
 
 def admin_login(request):
-    """Admin login page"""
     if request.user.is_authenticated and is_admin(request.user):
         return redirect('adminpanel:dashboard')
     
@@ -42,7 +40,6 @@ def admin_login(request):
 @login_required
 @user_passes_test(is_admin)
 def admin_logout(request):
-    """Admin logout"""
     logout(request)
     messages.success(request, 'You have been logged out successfully.')
     return redirect('adminpanel:login')
@@ -51,14 +48,11 @@ def admin_logout(request):
 @login_required
 @user_passes_test(is_admin)
 def dashboard(request):
-    """Admin dashboard"""
-    # Get some basic stats
     total_users = User.objects.count()
     active_users = User.objects.filter(is_active=True).count()
     staff_users = User.objects.filter(is_staff=True).count()
     blocked_users = User.objects.filter(is_active=False).count()
     
-    # Blog stats
     total_blogs = BlogPost.objects.count()
     published_blogs = BlogPost.objects.filter(status='published').count()
     draft_blogs = BlogPost.objects.filter(status='draft').count()
@@ -82,14 +76,11 @@ def dashboard(request):
 @login_required
 @user_passes_test(is_admin)
 def user_management(request):
-    """User management page"""
     search_query = request.GET.get('search', '')
     filter_type = request.GET.get('filter', 'all')
     
-    # Base queryset
     users = User.objects.all().order_by('-date_joined')
     
-    # Apply search filter
     if search_query:
         users = users.filter(
             Q(username__icontains=search_query) |
@@ -98,7 +89,6 @@ def user_management(request):
             Q(last_name__icontains=search_query)
         )
     
-    # Apply status filter
     if filter_type == 'active':
         users = users.filter(is_active=True)
     elif filter_type == 'inactive':
@@ -106,7 +96,6 @@ def user_management(request):
     elif filter_type == 'staff':
         users = users.filter(is_staff=True)
     
-    # Pagination
     paginator = Paginator(users, 20)  # Show 20 users per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -123,11 +112,9 @@ def user_management(request):
 @login_required
 @user_passes_test(is_admin)
 def user_detail(request, user_id):
-    """User detail and edit page"""
     user = get_object_or_404(User, id=user_id)
     
     if request.method == 'POST':
-        # Update user information
         user.username = request.POST.get('username', user.username)
         user.email = request.POST.get('email', user.email)
         user.first_name = request.POST.get('first_name', user.first_name)
@@ -152,7 +139,7 @@ def user_detail(request, user_id):
     user_comments_count = user.comments.count() if hasattr(user, 'comments') else 0
     
     context = {
-        'user_obj': user,  # Using user_obj to avoid conflict with request.user
+        'user_obj': user,  
         'user_posts_count': user_posts_count,
         'user_comments_count': user_comments_count,
     }
@@ -163,15 +150,14 @@ def user_detail(request, user_id):
 @user_passes_test(is_admin)
 @require_POST
 def delete_user(request, user_id):
-    """Delete user"""
     user = get_object_or_404(User, id=user_id)
     
-    # Prevent deleting yourself
+    # Prevent deleting ourself
     if user == request.user:
         messages.error(request, 'You cannot delete your own account.')
         return redirect('adminpanel:user_management')
     
-    # Prevent deleting superusers (unless you are one)
+    # Prevent deleting superusers 
     if user.is_superuser and not request.user.is_superuser:
         messages.error(request, 'You cannot delete a superuser.')
         return redirect('adminpanel:user_management')
@@ -185,7 +171,6 @@ def delete_user(request, user_id):
 @login_required
 @user_passes_test(is_admin)
 def create_user(request):
-    """Create new user"""
     if request.method == 'POST':
         username = request.POST.get('username')
         email = request.POST.get('email')
@@ -195,7 +180,6 @@ def create_user(request):
         is_staff = request.POST.get('is_staff') == 'on'
         is_active = request.POST.get('is_active', 'on') == 'on'
         
-        # Validation
         if not username or not email or not password:
             messages.error(request, 'Username, email, and password are required.')
             return render(request, 'adminpanel/create_user.html')
@@ -235,17 +219,16 @@ def block_user(request, user_id):
     """Block user (set is_active=False)"""
     user = get_object_or_404(User, id=user_id)
     
-    # Prevent blocking yourself
+    # Prevent blocking ourself
     if user == request.user:
         messages.error(request, 'You cannot block your own account.')
         return redirect('adminpanel:user_management')
     
-    # Prevent blocking superusers (unless you are one)
+    # Prevent blocking superusers 
     if user.is_superuser and not request.user.is_superuser:
         messages.error(request, 'You cannot block a superuser.')
         return redirect('adminpanel:user_management')
     
-    # Block the user
     user.is_active = False
     user.save()
     
@@ -263,26 +246,20 @@ def block_user(request, user_id):
 @user_passes_test(is_admin)
 @require_POST
 def unblock_user(request, user_id):
-    """Unblock user (set is_active=True)"""
     user = get_object_or_404(User, id=user_id)
     
-    # Unblock the user
     user.is_active = True
     user.save()
     
     messages.success(request, f'User {user.username} has been unblocked successfully. They can now login.')
     
-    # Redirect back to the referring page
     referer = request.META.get('HTTP_REFERER')
     if referer and 'user_detail' in referer:
         return redirect('adminpanel:user_detail', user_id=user.id)
     else:
         return redirect('adminpanel:user_management')
 
-
-# ============================================================================
 # BLOG MANAGEMENT VIEWS
-# ============================================================================
 
 @login_required
 @user_passes_test(is_admin)
@@ -292,10 +269,8 @@ def blog_management(request):
     status_filter = request.GET.get('status', 'all')
     category_filter = request.GET.get('category', 'all')
     
-    # Base queryset
     blogs = BlogPost.objects.all().select_related('author', 'category').order_by('-created_at')
     
-    # Apply search filter
     if search_query:
         blogs = blogs.filter(
             Q(title__icontains=search_query) |
@@ -303,20 +278,16 @@ def blog_management(request):
             Q(author__username__icontains=search_query)
         )
     
-    # Apply status filter
     if status_filter != 'all':
         blogs = blogs.filter(status=status_filter)
     
-    # Apply category filter
     if category_filter != 'all':
         blogs = blogs.filter(category_id=category_filter)
     
-    # Pagination
     paginator = Paginator(blogs, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Get categories for filter dropdown
     categories = Category.objects.all().order_by('name')
     
     context = {
@@ -333,7 +304,6 @@ def blog_management(request):
 @login_required
 @user_passes_test(is_admin)
 def create_blog(request):
-    """Create new blog post"""
     if request.method == 'POST':
         title = request.POST.get('title')
         content = request.POST.get('content')
@@ -343,7 +313,6 @@ def create_blog(request):
         is_featured = request.POST.get('is_featured') == 'on'
         featured_image = request.FILES.get('featured_image')
         
-        # Validation
         if not title or not content:
             messages.error(request, 'Title and content are required.')
             return render(request, 'adminpanel/create_blog.html', {
@@ -351,7 +320,6 @@ def create_blog(request):
             })
         
         try:
-            # Create blog post
             blog = BlogPost.objects.create(
                 title=title,
                 content=content,
@@ -363,7 +331,6 @@ def create_blog(request):
                 featured_image=featured_image
             )
             
-            # Handle attachments
             attachments = request.FILES.getlist('attachments')
             for attachment in attachments:
                 BlogPostAttachment.objects.create(
@@ -384,7 +351,6 @@ def create_blog(request):
 @login_required
 @user_passes_test(is_admin)
 def blog_detail(request, blog_id):
-    """Blog detail view"""
     blog = get_object_or_404(BlogPost, id=blog_id)
     attachments = blog.attachments.all()
     comments = blog.comments.all().select_related('author').order_by('-created_at')
@@ -401,7 +367,6 @@ def blog_detail(request, blog_id):
 @user_passes_test(is_admin)
 @require_POST
 def approve_comment(request, blog_id, comment_id):
-    """Approve a pending/rejected comment"""
     blog = get_object_or_404(BlogPost, id=blog_id)
     comment = get_object_or_404(Comment, id=comment_id, post=blog)
     comment.status = 'approved'
@@ -414,7 +379,6 @@ def approve_comment(request, blog_id, comment_id):
 @user_passes_test(is_admin)
 @require_POST
 def reject_comment(request, blog_id, comment_id):
-    """Reject a pending/approved comment"""
     blog = get_object_or_404(BlogPost, id=blog_id)
     comment = get_object_or_404(Comment, id=comment_id, post=blog)
     comment.status = 'rejected'
@@ -426,15 +390,12 @@ def reject_comment(request, blog_id, comment_id):
 @login_required
 @user_passes_test(is_admin)
 def comment_management(request):
-    """Comment management page"""
     search_query = request.GET.get('search', '')
     status_filter = request.GET.get('status', 'all')
     post_filter = request.GET.get('post', 'all')
     
-    # Base queryset
     comments = Comment.objects.all().select_related('author', 'post').order_by('-created_at')
     
-    # Apply search filter
     if search_query:
         comments = comments.filter(
             Q(content__icontains=search_query) |
@@ -442,23 +403,18 @@ def comment_management(request):
             Q(post__title__icontains=search_query)
         )
     
-    # Apply status filter
     if status_filter != 'all':
         comments = comments.filter(status=status_filter)
     
-    # Apply post filter
     if post_filter != 'all':
         comments = comments.filter(post_id=post_filter)
     
-    # Pagination
     paginator = Paginator(comments, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Get blog posts for filter dropdown
     blog_posts = BlogPost.objects.all().order_by('-created_at')[:50]  # Recent 50 posts
     
-    # Get comment statistics
     total_comments = Comment.objects.count()
     pending_comments = Comment.objects.filter(status='pending').count()
     approved_comments = Comment.objects.filter(status='approved').count()
@@ -483,7 +439,6 @@ def comment_management(request):
 @user_passes_test(is_admin)
 @require_POST
 def bulk_approve_comments(request):
-    """Bulk approve selected comments"""
     comment_ids = request.POST.getlist('comment_ids')
     if comment_ids:
         updated = Comment.objects.filter(id__in=comment_ids).update(status='approved')
@@ -497,7 +452,6 @@ def bulk_approve_comments(request):
 @user_passes_test(is_admin)
 @require_POST
 def bulk_reject_comments(request):
-    """Bulk reject selected comments"""
     comment_ids = request.POST.getlist('comment_ids')
     if comment_ids:
         updated = Comment.objects.filter(id__in=comment_ids).update(status='rejected')
@@ -511,7 +465,6 @@ def bulk_reject_comments(request):
 @user_passes_test(is_admin)
 @require_POST
 def delete_comment(request, comment_id):
-    """Delete a comment"""
     comment = get_object_or_404(Comment, id=comment_id)
     post_title = comment.post.title
     author = comment.author.username
@@ -577,7 +530,6 @@ def edit_blog(request, blog_id):
 @user_passes_test(is_admin)
 @require_POST
 def delete_blog(request, blog_id):
-    """Delete blog post"""
     blog = get_object_or_404(BlogPost, id=blog_id)
     title = blog.title
     blog.delete()
@@ -589,22 +541,17 @@ def delete_blog(request, blog_id):
 @user_passes_test(is_admin)
 @require_POST
 def delete_attachment(request, blog_id, attachment_id):
-    """Delete blog attachment"""
     blog = get_object_or_404(BlogPost, id=blog_id)
     attachment = get_object_or_404(BlogPostAttachment, id=attachment_id, post=blog)
     attachment.delete()
     messages.success(request, 'Attachment deleted successfully.')
     return redirect('adminpanel:edit_blog', blog_id=blog.id)
 
-
-# ============================================================================
 # CATEGORY MANAGEMENT VIEWS
-# ============================================================================
 
 @login_required
 @user_passes_test(is_admin)
 def category_management(request):
-    """Category management page"""
     search_query = request.GET.get('search', '')
     
     categories = Category.objects.all().order_by('name')
@@ -629,7 +576,6 @@ def category_management(request):
 @login_required
 @user_passes_test(is_admin)
 def create_category(request):
-    """Create new category"""
     if request.method == 'POST':
         name = request.POST.get('name')
         description = request.POST.get('description', '')
@@ -658,7 +604,6 @@ def create_category(request):
 @login_required
 @user_passes_test(is_admin)
 def edit_category(request, category_id):
-    """Edit category"""
     category = get_object_or_404(Category, id=category_id)
     
     if request.method == 'POST':
@@ -689,10 +634,8 @@ def edit_category(request, category_id):
 @user_passes_test(is_admin)
 @require_POST
 def delete_category(request, category_id):
-    """Delete category"""
     category = get_object_or_404(Category, id=category_id)
     
-    # Check if category has posts
     if category.posts.exists():
         messages.error(request, f'Cannot delete category "{category.name}" because it has associated blog posts.')
         return redirect('adminpanel:category_management')

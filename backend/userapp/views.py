@@ -13,7 +13,6 @@ User = get_user_model()
 
 # Frontend Template Views
 def login_page(request):
-    """Frontend login page"""
     if request.user.is_authenticated:
         return redirect('blog:post_list')
     
@@ -21,7 +20,6 @@ def login_page(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         
-        # Check if user exists and is blocked
         try:
             user_obj = User.objects.get(username=username)
             if not user_obj.is_active:
@@ -43,7 +41,6 @@ def login_page(request):
 
 
 def register_page(request):
-    """Frontend registration page"""
     if request.user.is_authenticated:
         return redirect('blog:post_list')
     
@@ -55,7 +52,6 @@ def register_page(request):
         first_name = request.POST.get('first_name', '')
         last_name = request.POST.get('last_name', '')
         
-        # Validation
         if password1 != password2:
             messages.error(request, 'Passwords do not match.')
             return render(request, 'userapp/register.html')
@@ -90,7 +86,6 @@ def register_page(request):
 
 @login_required
 def logout_view(request):
-    """Frontend logout view"""
     logout(request)
     messages.success(request, 'You have been logged out successfully.')
     return redirect('blog:post_list')
@@ -146,7 +141,6 @@ def api_login(request):
 @csrf_exempt
 @require_POST
 def api_register(request):
-    """API registration endpoint"""
     try:
         data = json.loads(request.body)
         username = data.get('username')
@@ -155,7 +149,6 @@ def api_register(request):
         first_name = data.get('first_name', '')
         last_name = data.get('last_name', '')
         
-        # Validation
         if not username or not email or not password:
             return JsonResponse({'error': 'Username, email, and password are required'}, status=400)
         
@@ -196,7 +189,6 @@ def api_register(request):
 
 @require_POST
 def api_logout(request):
-    """API logout endpoint"""
     if request.user.is_authenticated:
         logout(request)
         return JsonResponse({'success': True, 'message': 'Logout successful'})
