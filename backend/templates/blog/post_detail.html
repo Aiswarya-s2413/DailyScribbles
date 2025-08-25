@@ -403,6 +403,30 @@
             {{ post.content|linebreaks }}
         </div>
 
+        <!-- Attachments (download available to users) -->
+        {% if post.attachments.all %}
+        <div class="sidebar-card">
+            <div class="sidebar-card-header">
+                <i class="fas fa-paperclip me-2"></i>Attachments ({{ post.attachments.count }})
+            </div>
+            <div class="sidebar-card-body">
+                <ul class="list-unstyled mb-0">
+                    {% for attachment in post.attachments.all %}
+                    <li class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                        <div>
+                            <i class="fas fa-file me-2 text-muted"></i>
+                            {{ attachment.title|default:attachment.file.name }}
+                        </div>
+                        <a href="{{ attachment.file.url }}" download class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-download"></i> Download
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Post Actions -->
         <div class="post-actions">
             <div class="like-section">
