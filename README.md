@@ -290,6 +290,4 @@ If you encounter any issues or have questions:
 
 ---
 
-**Made with ❤️ by [Your Name]**
-
 *DailyScribbles - Where every thought becomes a story*
