@@ -59,8 +59,12 @@ def blog_list_view(request):
 def blog_detail_view(request, slug):
     post = get_object_or_404(BlogPost, slug=slug, status='published')
     
-    # Increment view count
-    BlogPost.objects.filter(id=post.id).update(view_count=F('view_count') + 1)
+    # Increment view count once per session for this post
+    viewed_posts = request.session.get('viewed_posts', [])
+    if post.id not in viewed_posts:
+        BlogPost.objects.filter(id=post.id).update(view_count=F('view_count') + 1)
+        viewed_posts.append(post.id)
+        request.session['viewed_posts'] = viewed_posts
     
     # Get approved comments
     comments = Comment.objects.filter(
@@ -216,8 +220,12 @@ def api_posts_list(request):
 def api_post_detail(request, slug):
     post = get_object_or_404(BlogPost, slug=slug, status='published')
     
-    # Increment view count
-    BlogPost.objects.filter(id=post.id).update(view_count=F('view_count') + 1)
+    # Increment view count once per session for this post (API)
+    viewed_posts = request.session.get('viewed_posts', [])
+    if post.id not in viewed_posts:
+        BlogPost.objects.filter(id=post.id).update(view_count=F('view_count') + 1)
+        viewed_posts.append(post.id)
+        request.session['viewed_posts'] = viewed_posts
     
     # Get comments
     comments = Comment.objects.filter(
