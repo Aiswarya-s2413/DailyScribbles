@@ -305,16 +305,36 @@ def blog_management(request):
 @user_passes_test(is_admin)
 def create_blog(request):
     if request.method == 'POST':
-        title = request.POST.get('title')
-        content = request.POST.get('content')
-        excerpt = request.POST.get('excerpt', '')
+        title = (request.POST.get('title') or '').strip()
+        content = (request.POST.get('content') or '').strip()
+        excerpt = (request.POST.get('excerpt', '') or '').strip()
         category_id = request.POST.get('category')
         status = request.POST.get('status', 'draft')
         is_featured = request.POST.get('is_featured') == 'on'
         featured_image = request.FILES.get('featured_image')
+
+        def only_spaces_or_symbols(s: str) -> bool:
+            if not s or not s.strip():
+                return True
+            return all(not ch.isalnum() for ch in s.strip())
+
+        def only_numbers(s: str) -> bool:
+            s = s.strip()
+            return len(s) > 0 and s.isdigit()
         
-        if not title or not content:
-            messages.error(request, 'Title and content are required.')
+        if only_spaces_or_symbols(title) or only_numbers(title):
+            messages.error(request, 'Title cannot be empty, spaces-only, symbols-only, or numbers-only.')
+            return render(request, 'adminpanel/create_blog.html', {
+                'categories': Category.objects.all().order_by('name')
+            })
+        if only_spaces_or_symbols(content) or only_numbers(content):
+            messages.error(request, 'Content cannot be empty, spaces-only, symbols-only, or numbers-only.')
+            return render(request, 'adminpanel/create_blog.html', {
+                'categories': Category.objects.all().order_by('name')
+            })
+        # Excerpt is optional and if given validate it
+        if excerpt and (only_spaces_or_symbols(excerpt) or only_numbers(excerpt)):
+            messages.error(request, 'Excerpt cannot be symbols-only, numbers-only, or spaces-only.')
             return render(request, 'adminpanel/create_blog.html', {
                 'categories': Category.objects.all().order_by('name')
             })
@@ -486,9 +506,33 @@ def edit_blog(request, blog_id):
     blog = get_object_or_404(BlogPost, id=blog_id)
     
     if request.method == 'POST':
-        blog.title = request.POST.get('title', blog.title)
-        blog.content = request.POST.get('content', blog.content)
-        blog.excerpt = request.POST.get('excerpt', blog.excerpt)
+        title = (request.POST.get('title', blog.title) or '').strip()
+        content = (request.POST.get('content', blog.content) or '').strip()
+        excerpt = (request.POST.get('excerpt', blog.excerpt) or '').strip()
+
+        # Inline validation similar to create_blog
+        def only_spaces_or_symbols(s: str) -> bool:
+            if not s or not s.strip():
+                return True
+            return all(not ch.isalnum() for ch in s.strip())
+
+        def only_numbers(s: str) -> bool:
+            s = s.strip()
+            return len(s) > 0 and s.isdigit()
+
+        if only_spaces_or_symbols(title) or only_numbers(title):
+            messages.error(request, 'Title cannot be empty, spaces-only, symbols-only, or numbers-only.')
+            return render(request, 'adminpanel/edit_blog.html', {'blog': blog, 'categories': Category.objects.all().order_by('name'), 'attachments': blog.attachments.all()})
+        if only_spaces_or_symbols(content) or only_numbers(content):
+            messages.error(request, 'Content cannot be empty, spaces-only, symbols-only, or numbers-only.')
+            return render(request, 'adminpanel/edit_blog.html', {'blog': blog, 'categories': Category.objects.all().order_by('name'), 'attachments': blog.attachments.all()})
+        if excerpt and (only_spaces_or_symbols(excerpt) or only_numbers(excerpt)):
+            messages.error(request, 'Excerpt cannot be symbols-only, numbers-only, or spaces-only.')
+            return render(request, 'adminpanel/edit_blog.html', {'blog': blog, 'categories': Category.objects.all().order_by('name'), 'attachments': blog.attachments.all()})
+
+        blog.title = title
+        blog.content = content
+        blog.excerpt = excerpt
         
         category_id = request.POST.get('category')
         blog.category_id = category_id if category_id else None
