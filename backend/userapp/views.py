@@ -6,6 +6,8 @@ from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 import json
 
 User = get_user_model()
@@ -45,13 +47,48 @@ def register_page(request):
         return redirect('blog:post_list')
     
     if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password1 = request.POST.get('password1')
-        password2 = request.POST.get('password2')
-        first_name = request.POST.get('first_name', '')
-        last_name = request.POST.get('last_name', '')
-        
+        username = (request.POST.get('username') or '').strip()
+        email = (request.POST.get('email') or '').strip()
+        password1 = request.POST.get('password1') or ''
+        password2 = request.POST.get('password2') or ''
+        first_name = (request.POST.get('first_name', '') or '').strip()
+        last_name = (request.POST.get('last_name', '') or '').strip()
+
+        def only_spaces_or_symbols(s: str) -> bool:
+            if not s or not s.strip():
+                return True
+            return all(not ch.isalnum() for ch in s.strip())
+
+        def only_numbers(s: str) -> bool:
+            s = s.strip()
+            return len(s) > 0 and s.isdigit()
+
+        if only_spaces_or_symbols(username):
+            messages.error(request, 'Username cannot be empty, spaces-only, or symbols-only.')
+            return render(request, 'userapp/register.html')
+        if only_spaces_or_symbols(first_name):
+            messages.error(request, 'First name cannot be empty, spaces-only, or symbols-only.')
+            return render(request, 'userapp/register.html')
+        if only_spaces_or_symbols(last_name):
+            messages.error(request, 'Last name cannot be empty, spaces-only, or symbols-only.')
+            return render(request, 'userapp/register.html')
+
+        if only_numbers(username):
+            messages.error(request, 'Username cannot be numbers only.')
+            return render(request, 'userapp/register.html')
+        if only_numbers(first_name):
+            messages.error(request, 'First name cannot be numbers only.')
+            return render(request, 'userapp/register.html')
+        if only_numbers(last_name):
+            messages.error(request, 'Last name cannot be numbers only.')
+            return render(request, 'userapp/register.html')
+
+        try:
+            validate_email(email)
+        except ValidationError:
+            messages.error(request, 'Please enter a valid email address.')
+            return render(request, 'userapp/register.html')
+
         if password1 != password2:
             messages.error(request, 'Passwords do not match.')
             return render(request, 'userapp/register.html')
@@ -143,16 +180,41 @@ def api_login(request):
 def api_register(request):
     try:
         data = json.loads(request.body)
-        username = data.get('username')
-        email = data.get('email')
-        password = data.get('password')
-        first_name = data.get('first_name', '')
-        last_name = data.get('last_name', '')
+        username = (data.get('username') or '').strip()
+        email = (data.get('email') or '').strip()
+        password = (data.get('password') or '')
+        first_name = (data.get('first_name') or '').strip()
+        last_name = (data.get('last_name') or '').strip()
         
-        if not username or not email or not password:
-            return JsonResponse({'error': 'Username, email, and password are required'}, status=400)
+        # Inline validation: block spaces-only, symbols-only, and numbers-only where applicable
+        def only_spaces_or_symbols(s: str) -> bool:
+            if not s or not s.strip():
+                return True
+            return all(not ch.isalnum() for ch in s.strip())
         
-        if len(password) < 8:
+        def only_numbers(s: str) -> bool:
+            s = s.strip()
+            return len(s) > 0 and s.isdigit()
+        
+        if only_spaces_or_symbols(username):
+            return JsonResponse({'error': 'Username cannot be empty, spaces-only, or symbols-only'}, status=400)
+        if only_spaces_or_symbols(first_name):
+            return JsonResponse({'error': 'First name cannot be empty, spaces-only, or symbols-only'}, status=400)
+        if only_spaces_or_symbols(last_name):
+            return JsonResponse({'error': 'Last name cannot be empty, spaces-only, or symbols-only'}, status=400)
+        if only_numbers(username):
+            return JsonResponse({'error': 'Username cannot be numbers only'}, status=400)
+        if only_numbers(first_name):
+            return JsonResponse({'error': 'First name cannot be numbers only'}, status=400)
+        if only_numbers(last_name):
+            return JsonResponse({'error': 'Last name cannot be numbers only'}, status=400)
+        
+        try:
+            validate_email(email)
+        except ValidationError:
+            return JsonResponse({'error': 'Please enter a valid email address'}, status=400)
+        
+        if not password or len(password) < 8:
             return JsonResponse({'error': 'Password must be at least 8 characters long'}, status=400)
         
         if User.objects.filter(username=username).exists():
